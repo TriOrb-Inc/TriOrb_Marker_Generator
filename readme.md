@@ -9,3 +9,6 @@ Markers dictionaries are taken from this URL:
 https://raw.githubusercontent.com/opencv/opencv_contrib/master/modules/aruco/src/predefined_dictionaries.hpp.
 
 Learn more about ArUco markers: https://docs.opencv.org/3.2.0/d5/dae/tutorial_aruco_detection.html.
+
+## Tips
+- VSCode Extension : Live Server
