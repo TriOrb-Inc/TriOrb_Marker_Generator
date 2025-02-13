@@ -157,51 +157,58 @@ function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_
 		}
 
 		// 左上、右下、左下、右上、中央、左中央、右中央、上中央、下中央の順に並べる
-		let offset_x = 0;
-		let offset_y = 0;
 		switch (id_offset) {
 			case 0:
 				offset_x = 0;
 				offset_y = 0;
 				break;
 			case 1:
-				offset_x = viebox_width - width - 2;
-				offset_y = viebox_height - height - 2;
+				offset_x = viebox_width - width - 4;
+				offset_y = viebox_height - height - 4;
 				break;
 			case 2:
 				offset_x = 0;
-				offset_y = viebox_height - height - 2;
+				offset_y = viebox_height - height - 4;
 				break;
 			case 3:
-				offset_x = viebox_width - width - 2;
+				offset_x = viebox_width - width - 4;
 				offset_y = 0;
 				break;
 			case 4:
-				offset_x = (viebox_width - width - 2) / 2;
-				offset_y = (viebox_height - height - 2) / 2;
+				offset_x = (viebox_width - width - 4) / 2;
+				offset_y = (viebox_height - height - 4) / 2;
 				break;
 			case 5:
 				offset_x = 0;
-				offset_y = (viebox_height - height - 2) / 2;
+				offset_y = (viebox_height - height - 4) / 2;
 				break;
 			case 6:
-				offset_x = viebox_width - width - 2;
-				offset_y = (viebox_height - height - 2) / 2;
+				offset_x = viebox_width - width - 4;
+				offset_y = (viebox_height - height - 4) / 2;
 				break;
 			case 7:
-				offset_x = (viebox_width - width - 2) / 2;
+				offset_x = (viebox_width - width - 4) / 2;
 				offset_y = 0;
 				break;
 			case 8:
-				offset_x = (viebox_width - width - 2) / 2;
-				offset_y = viebox_height - height - 2;
+				offset_x = (viebox_width - width - 4) / 2;
+				offset_y = viebox_height - height - 4;
 				break;
 			default:
 				alert('id_offset is invalid');
 				break;
 		}
 
-		svg = generateMarkerSvg(svg, width, height, bits, offset_x, offset_y);
+		svg = generateMarkerSvg(svg, width, height, bits, offset_x + 1, offset_y + 1);
+		// Draw ID
+		var text = document.createElement('text');
+		text.setAttribute('x', offset_x + 1);
+		text.setAttribute('y', offset_y + height + 4);
+		text.setAttribute('fill', 'rgb(192,255,192)');
+		text.setAttribute('font-size', 0.8);
+		text.setAttribute('font-family', 'Arial');
+		text.textContent = id + id_offset;
+		svg.appendChild(text);
 	}
 	return svg
 }
@@ -276,9 +283,9 @@ function init() {
 			saveButton.setAttribute('download', dictName + '-' + markerId + '.svg');
 			if (markerNum > 0) {
 				if (markerNum > 1) {
-					document.querySelector('.marker-id').innerHTML = dictName + ' : ' + markerId + ' - ' + (markerId + markerNum - 1);
+					//document.querySelector('.marker-id').innerHTML = dictName + ' : ' + markerId + ' - ' + (markerId + markerNum - 1);
 				} else {
-					document.querySelector('.marker-id').innerHTML = dictName + ' : ' + markerId;
+					//document.querySelector('.marker-id').innerHTML = dictName + ' : ' + markerId;
 				}
 
 			}
