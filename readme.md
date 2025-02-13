@@ -1,7 +1,7 @@
 Online TriOrb markers generator
 ====
 
-Generate markers online and save them to SVG and PDF with ease: http://chev.me/arucogen/.
+Generate markers online and save them to SVG and PDF with ease: https://triorb-inc.github.io/TriOrb_Marker_Generator/.
 
 <img src="triorbgen.webp" width="600px">
 
