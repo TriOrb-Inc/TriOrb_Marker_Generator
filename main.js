@@ -70,6 +70,17 @@ function generateMarkerSvg(svg, width, height, bits, offset_x = 0, offset_y = 0,
 		}
 	}
 
+	// 枠線
+	var border = document.createElement('rect');
+	border.setAttribute('x', offset_x - 1);
+	border.setAttribute('y', offset_y - 1);
+	border.setAttribute('width', width + 4);
+	border.setAttribute('height', height + 4);
+	border.setAttribute('fill', 'none');
+	border.setAttribute('stroke', 'rgb(200,200,200)');
+	border.setAttribute('stroke-width', 0.05);
+	svg.appendChild(border);
+
 	return svg;
 }
 
@@ -203,7 +214,7 @@ function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_
 		// Draw ID
 		var text = document.createElement('text');
 		text.setAttribute('x', offset_x + 1);
-		text.setAttribute('y', offset_y + height + 4);
+		text.setAttribute('y', offset_y + height + 3.9);
 		text.setAttribute('fill', 'rgb(192,255,192)');
 		text.setAttribute('font-size', 0.8);
 		text.setAttribute('font-family', 'Arial');
