@@ -138,8 +138,17 @@ function generateRandomPattern(svg, width, height, point_num) {
 
 var dict;
 
+function selectedLayout() {
+	for (let radio of document.getElementsByName('marker-layout')) {
+		if (radio.checked) {
+			return radio.id;
+		}
+	}
+	return "layout-tile";
+}
+
 function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_width, field_height, polygon_num) {
-	console.log('Generate ArUco marker ' + dictName + ' ' + id);
+	console.log('Generate ArUco marker ' + dictName + ' ' + id + ' - ' + (id + num - 1) + ' with size ' + width + 'x' + height + ' mm' + ' and layout ' + selectedLayout());
 	var viebox_width = (field_width / bit_size);
 	var viebox_height = (field_height / bit_size);
 	var bitsCount = width * height;
@@ -154,6 +163,12 @@ function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_
 	// Generate Random pattern
 	svg = generateRandomPattern(svg, viebox_width, viebox_height, polygon_num);
 
+	let float_h_max = Math.floor(viebox_width / (width + 4));
+	let float_v_max = Math.floor(viebox_height / (height + 4));
+	let float_p_max = float_h_max * float_v_max;
+	let float_rows = Math.min(Math.ceil(num / float_h_max), float_v_max);
+	let float_cols = Math.min(Math.ceil(num / float_v_max), float_h_max);
+
 	// Generate markers
 	for (let id_offset = 0; id_offset < num; id_offset++) {
 		var bytes = dict[dictName][id + id_offset];
@@ -167,47 +182,124 @@ function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_
 			}
 		}
 
-		// 左上、右下、左下、右上、中央、左中央、右中央、上中央、下中央の順に並べる
-		switch (id_offset) {
-			case 0:
-				offset_x = 0;
+		switch (selectedLayout()) {
+			case "layout-tile":
+				// 左上、右下、左下、右上、中央、左中央、右中央、上中央、下中央の順に並べる
+				switch (id_offset % 9) {
+					case 0:
+						offset_x = 0;
+						offset_y = 0;
+						break;
+					case 1:
+						offset_x = viebox_width - width - 4;
+						offset_y = viebox_height - height - 4;
+						break;
+					case 2:
+						offset_x = 0;
+						offset_y = viebox_height - height - 4;
+						break;
+					case 3:
+						offset_x = viebox_width - width - 4;
+						offset_y = 0;
+						break;
+					case 4:
+						offset_x = (viebox_width - width - 4) / 2;
+						offset_y = (viebox_height - height - 4) / 2;
+						break;
+					case 5:
+						offset_x = 0;
+						offset_y = (viebox_height - height - 4) / 2;
+						break;
+					case 6:
+						offset_x = viebox_width - width - 4;
+						offset_y = (viebox_height - height - 4) / 2;
+						break;
+					case 7:
+						offset_x = (viebox_width - width - 4) / 2;
+						offset_y = 0;
+						break;
+					case 8:
+						offset_x = (viebox_width - width - 4) / 2;
+						offset_y = viebox_height - height - 4;
+						break;
+					default:
+						alert('Invalid offset');
+						return;
+				}
+				break;
+			case "layout-h-stack":
+				if (id_offset >= float_h_max) {
+					alert('Number of markers exceeds the limit of ' + float_h_max);
+					return;
+				}
+				offset_x = id_offset * (width + 4);
 				offset_y = 0;
 				break;
-			case 1:
-				offset_x = viebox_width - width - 4;
-				offset_y = viebox_height - height - 4;
-				break;
-			case 2:
+			case "layout-v-stack":
+				if (id_offset >= float_v_max) {
+					alert('Number of markers exceeds the limit of ' + float_v_max);
+					return;
+				}
 				offset_x = 0;
-				offset_y = viebox_height - height - 4;
+				offset_y = id_offset * (height + 4);
 				break;
-			case 3:
-				offset_x = viebox_width - width - 4;
-				offset_y = 0;
+			case "layout-h-float":
+				// viebox にピッタリ収まるように横→縦の順に並べる
+				if (id_offset >= float_p_max) {
+					alert('Number of markers exceeds the limit of ' + float_p_max);
+					return;
+				}
+				{
+					let h_idx = id_offset % float_h_max;
+					let v_idx = (Math.floor((id_offset % float_p_max) / float_h_max)) % float_v_max;
+					let is_last_row = num - (v_idx * float_h_max) <= float_h_max;
+					if (is_last_row) {
+						let last_row_cols = num - (v_idx * float_h_max);
+						if (last_row_cols == 1) {
+							offset_x = 0;
+						} else {
+							offset_x = (viebox_width - width - 4) / (last_row_cols - 1) * h_idx;
+						}
+					} else {
+						offset_x = (viebox_width - width - 4) / (float_h_max - 1) * h_idx;
+					}
+					if (float_rows == 1) {
+						offset_y = 0;
+					} else {
+						offset_y = (viebox_height - height - 4) / (float_rows - 1) * v_idx;
+					}
+				}
 				break;
-			case 4:
-				offset_x = (viebox_width - width - 4) / 2;
-				offset_y = (viebox_height - height - 4) / 2;
-				break;
-			case 5:
-				offset_x = 0;
-				offset_y = (viebox_height - height - 4) / 2;
-				break;
-			case 6:
-				offset_x = viebox_width - width - 4;
-				offset_y = (viebox_height - height - 4) / 2;
-				break;
-			case 7:
-				offset_x = (viebox_width - width - 4) / 2;
-				offset_y = 0;
-				break;
-			case 8:
-				offset_x = (viebox_width - width - 4) / 2;
-				offset_y = viebox_height - height - 4;
+			case "layout-v-float":
+				// viebox にピッタリ収まるように縦→横の順に並べる
+				if (id_offset >= float_p_max) {
+					alert('Number of markers exceeds the limit of ' + float_p_max);
+					return;
+				}
+				{
+					let v_idx = id_offset % float_v_max;
+					let h_idx = (Math.floor((id_offset % float_p_max) / float_v_max)) % float_h_max;
+					let is_last_col = num - (h_idx * float_v_max) <= float_v_max;
+					if (is_last_col) {
+						let last_col_rows = num - (h_idx * float_v_max);
+						if (last_col_rows == 1) {
+							offset_y = 0;
+						} else {
+							offset_y = (viebox_height - height - 4) / (last_col_rows - 1) * v_idx;
+						}
+					} else {
+						offset_y = (viebox_height - height - 4) / (float_v_max - 1) * v_idx;
+					}
+					if (float_cols == 1) {
+						offset_x = 0;
+					} else {
+						offset_x = (viebox_width - width - 4) / (float_cols - 1) * h_idx;
+					}
+				}
 				break;
 			default:
-				alert('id_offset is invalid');
-				break;
+				alert('Invalid layout' + selectedLayout());
+				return;
 		}
 
 		svg = generateMarkerSvg(svg, width, height, bits, offset_x + 1, offset_y + 1);
@@ -240,6 +332,7 @@ function init() {
 	var fieldHeightInput = document.querySelector('.field input[name=height]');
 	var markerNumInput = document.querySelector('.field input[name=num]');
 	var polygonNumInput = document.querySelector('.field input[name=polygons]');
+	var markerLayout = document.getElementsByName('marker-layout');
 
 	const params = new URLSearchParams(location.search);
 	if (params.has('dict')) {
@@ -289,6 +382,9 @@ function init() {
 		loadDict.then(function() {
 			// Generate marker
 			var svg = generateTriOrbMarker(markerWidth, markerHeight, dictName, markerId, markerNum, bitSize, fieldWidth, fieldHeight, polygonNum);
+			if (!svg) {
+				return;
+			}
 			document.querySelector('.marker').innerHTML = svg.outerHTML;
 			saveButton.setAttribute('href', 'data:image/svg;base64,' + btoa(svg.outerHTML.replace('viewbox', 'viewBox')));
 			saveButton.setAttribute('download', dictName + '-' + markerId + '.svg');
@@ -313,6 +409,10 @@ function init() {
 	fieldHeightInput.addEventListener('input', updateMarker);
 	markerNumInput.addEventListener('input', updateMarker);
 	polygonNumInput.addEventListener('input', updateMarker);
+	markerLayout.forEach(function (radio) {
+		radio.addEventListener('change', updateMarker);
+	}
+	);
 }
 
 init();
