@@ -147,7 +147,7 @@ function selectedLayout() {
 	return "layout-tile";
 }
 
-function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_width, field_height, polygon_num) {
+function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_width, field_height, polygon_num, max_rows, max_cols) {
 	console.log('Generate ArUco marker ' + dictName + ' ' + id + ' - ' + (id + num - 1) + ' with size ' + width + 'x' + height + ' mm' + ' and layout ' + selectedLayout());
 	var viebox_width = (field_width / bit_size);
 	var viebox_height = (field_height / bit_size);
@@ -163,8 +163,8 @@ function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_
 	// Generate Random pattern
 	svg = generateRandomPattern(svg, viebox_width, viebox_height, polygon_num);
 
-	let float_h_max = Math.floor(viebox_width / (width + 4));
-	let float_v_max = Math.floor(viebox_height / (height + 4));
+	let float_h_max = (max_cols > 0 && selectedLayout().match(/float/)) ? max_cols : Math.floor(viebox_width / (width + 4));
+	let float_v_max = (max_rows > 0 && selectedLayout().match(/float/)) ? max_rows : Math.floor(viebox_height / (height + 4));
 	let float_p_max = float_h_max * float_v_max;
 	let float_rows = Math.min(Math.ceil(num / float_h_max), float_v_max);
 	let float_cols = Math.min(Math.ceil(num / float_v_max), float_h_max);
@@ -353,6 +353,8 @@ function init() {
 	var markerNumInput = document.querySelector('.field input[name=num]');
 	var polygonNumInput = document.querySelector('.field input[name=polygons]');
 	var markerLayout = document.getElementsByName('marker-layout');
+	var maxRowsInput = document.querySelector('.field input[name=max-rows');
+	var maxColsInput = document.querySelector('.field input[name=max-cols');
 
 	const params = new URLSearchParams(location.search);
 	if (params.has('dict')) {
@@ -379,6 +381,12 @@ function init() {
 	if (params.has('marker-layout')) {
 		document.getElementById('layout-' + params.get('marker-layout')).checked = true;
 	}
+	if (params.has('max-rows')) {
+		maxRowsInput.value = params.get('max-rows');
+	}
+	if (params.has('max-cols')) {
+		maxColsInput.value = params.get('max-cols');
+	}
 
 	function updateMarker() {
 		var markerId = Number(markerIdInput.value);
@@ -393,6 +401,8 @@ function init() {
 		var markerNum = Number(markerNumInput.value);
 		var bitSize = markerSize / (markerWidth + 2);
 		var polygonNum = Number(polygonNumInput.value);
+		var maxRows = Number(maxRowsInput.value);
+		var maxCols = Number(maxColsInput.value);
 
 		markerIdInput.setAttribute('max', maxId);
 
@@ -404,7 +414,7 @@ function init() {
 		// Wait until dict data is loaded
 		loadDict.then(function() {
 			// Generate marker
-			var svg = generateTriOrbMarker(markerWidth, markerHeight, dictName, markerId, markerNum, bitSize, fieldWidth, fieldHeight, polygonNum);
+			var svg = generateTriOrbMarker(markerWidth, markerHeight, dictName, markerId, markerNum, bitSize, fieldWidth, fieldHeight, polygonNum, maxRows, maxCols);
 			if (!svg) {
 				return;
 			}
@@ -445,9 +455,19 @@ function init() {
 	markerNumInput.addEventListener('input', updateMarker);
 	polygonNumInput.addEventListener('input', updateMarker);
 	markerLayout.forEach(function (radio) {
-		radio.addEventListener('change', updateMarker);
-	}
-	);
+		radio.addEventListener('change', function (radio) {
+			updateMarker();
+			if (radio.target.id.match(/float/)) {
+				maxRowsInput.disabled = false;
+				maxColsInput.disabled = false;
+			} else {
+				maxRowsInput.disabled = true;
+				maxColsInput.disabled = true;
+			}
+		});
+	});
+	maxColsInput.addEventListener('input', updateMarker);
+	maxRowsInput.addEventListener('input', updateMarker);
 }
 
 function printFunction() {
