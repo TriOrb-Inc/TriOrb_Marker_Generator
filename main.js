@@ -380,6 +380,13 @@ function init() {
 	}
 	if (params.has('marker-layout')) {
 		document.getElementById('layout-' + params.get('marker-layout')).checked = true;
+		if (params.get('marker-layout').match(/float/)) {
+			maxRowsInput.disabled = false;
+			maxColsInput.disabled = false;
+		} else {
+			maxRowsInput.disabled = true;
+			maxColsInput.disabled = true;
+		}
 	}
 	if (params.has('max-rows')) {
 		maxRowsInput.value = params.get('max-rows');
