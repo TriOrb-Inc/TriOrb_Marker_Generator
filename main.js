@@ -17,6 +17,23 @@
  * 
  */
 
+let timeout = null;
+function silentAlert(msg) {
+	if (timeout) {
+		clearTimeout(timeout);
+	}
+	console.log(msg);
+	let input = document.getElementById('error-message');
+	input.value = msg;
+	input.style.display = 'block';
+	timeout = setTimeout(function () {
+		input.value = '';
+		input.style.display = 'none';
+		timeout = null;
+	}
+		, 5000);
+}
+
 function generateMarkerSvg(svg, width, height, bits, offset_x = 0, offset_y = 0, draw_border = true) {
 	// Border
 	if (draw_border) {
@@ -229,7 +246,7 @@ function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_
 				break;
 			case "layout-h-stack":
 				if (id_offset >= float_h_max) {
-					alert('Number of markers exceeds the limit of ' + float_h_max);
+					silentAlert('[ERROR] Number of markers exceeds the limit of ' + float_h_max);
 					return;
 				}
 				offset_x = id_offset * (width + 4);
@@ -237,7 +254,7 @@ function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_
 				break;
 			case "layout-v-stack":
 				if (id_offset >= float_v_max) {
-					alert('Number of markers exceeds the limit of ' + float_v_max);
+					silentAlert('[ERROR] Number of markers exceeds the limit of ' + float_v_max);
 					return;
 				}
 				offset_x = 0;
@@ -246,7 +263,7 @@ function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_
 			case "layout-h-float":
 				// viebox にピッタリ収まるように横→縦の順に並べる
 				if (id_offset >= float_p_max) {
-					alert('Number of markers exceeds the limit of ' + float_p_max);
+					silentAlert('[ERROR] Number of markers exceeds the limit of ' + float_p_max);
 					return;
 				}
 				{
@@ -273,7 +290,7 @@ function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_
 			case "layout-v-float":
 				// viebox にピッタリ収まるように縦→横の順に並べる
 				if (id_offset >= float_p_max) {
-					alert('Number of markers exceeds the limit of ' + float_p_max);
+					silentAlert('[ERROR] Number of markers exceeds the limit of ' + float_p_max);
 					return;
 				}
 				{
