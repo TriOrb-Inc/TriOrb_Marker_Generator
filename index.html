@@ -12,9 +12,9 @@
 		<form class="setup">
 			<ul>
 				<div class="field">
-					<label for="frm-dict">Marker Dictionary:</label>
+					<label for="frm-dict">Marker Type:</label>
 					<select name="dict" id="frm-dict">
-						<optgroup label="Standard dictionaries">
+						<optgroup label="ArUco">
 							<option value="aruco" data-width="5" data-height="5" data-number="1024">Original ArUco</option>
 							<option value="4x4_1000" data-width="4" data-height="4">4x4 (50, 100, 250, 1000)</option>
 							<option value="5x5_1000" data-width="5" data-height="5">5x5 (50, 100, 250, 1000)</option>
@@ -30,8 +30,6 @@
 						</optgroup>
 					</select>
 				</div>
-			</ul>
-			<ul>
 				<div class="field">
 					<label for="frm-size">Marker size [mm]</label>
 					<input id="frm-size" name="size" type="number" min="1" max="5000" value="40" step="0.1">
@@ -40,6 +38,8 @@
 					<label for="frm-id">Marker ID</label>
 					<input id="frm-id" name="id" type="number" min="0" max="999" value="0" step="1">
 				</div>
+			</ul>
+			<ul>
 				<div class="field">
 					<label for="frm-num">Marker Num</label>
 					<input id="frm-num" name="num" type="number" min="0" max="1000" value="0" step="1">
