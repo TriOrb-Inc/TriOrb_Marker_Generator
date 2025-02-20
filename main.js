@@ -323,6 +323,26 @@ var loadDict = fetch('dict.json').then(function(res) {
 	dict = json;
 });
 
+//[ref] https://qiita.com/akinov/items/26a7fc36d7c0045dd2db
+function getUrlQueries() {
+	var queryStr = window.location.search.slice(1);  // 文頭?を除外
+	queries = {};
+
+	// クエリがない場合は空のオブジェクトを返す
+	if (!queryStr) {
+		return queries;
+	}
+
+	// クエリ文字列を & で分割して処理
+	queryStr.split('&').forEach(function (queryStr) {
+		// = で分割してkey,valueをオブジェクトに格納
+		var queryArr = queryStr.split('=');
+		queries[queryArr[0]] = queryArr[1];
+	});
+
+	return queries;
+}
+
 function init() {
 	var dictSelect = document.querySelector('.setup select[name=dict]');
 	var markerIdInput = document.querySelector('.setup input[name=id]');
@@ -355,6 +375,9 @@ function init() {
 	}
 	if (params.has('polygons')) {
 		polygonNumInput.value = params.get('polygons');
+	}
+	if (params.has('marker-layout')) {
+		document.getElementById('layout-' + params.get('marker-layout')).checked = true;
 	}
 
 	function updateMarker() {
@@ -391,7 +414,7 @@ function init() {
 				filename += `_${polygonNum}polygons`;
 			}
 			if (markerNum > 0) {
-				filename += `_${dictName}_ID${markerId}`;
+				filename += `_${dictName}_${markerWidth}x${markerHeight}mm_ID${markerId}`;
 				if (markerNum > 1) {
 					filename += `-${markerId + markerNum - 1}`;
 				}
