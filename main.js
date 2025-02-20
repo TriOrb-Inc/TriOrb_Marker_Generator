@@ -414,7 +414,7 @@ function init() {
 				filename += `_${polygonNum}polygons`;
 			}
 			if (markerNum > 0) {
-				filename += `_${dictName}_${markerWidth}x${markerHeight}mm_ID${markerId}`;
+				filename += `_${dictName}_${markerSize}mm_ID${markerId}`;
 				if (markerNum > 1) {
 					filename += `-${markerId + markerNum - 1}`;
 				}
