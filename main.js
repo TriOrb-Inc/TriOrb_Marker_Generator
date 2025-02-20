@@ -385,9 +385,21 @@ function init() {
 			if (!svg) {
 				return;
 			}
+			let filename;
+			filename = `TriOrb_Marker_${fieldWidth}x${fieldHeight}mm`;
+			if (polygonNum > 0) {
+				filename += `_${polygonNum}polygons`;
+			}
+			if (markerNum > 0) {
+				filename += `_${dictName}_ID${markerId}`;
+				if (markerNum > 1) {
+					filename += `-${markerId + markerNum - 1}`;
+				}
+			}
+			filename += '.svg';
 			document.querySelector('.marker').innerHTML = svg.outerHTML;
 			saveButton.setAttribute('href', 'data:image/svg;base64,' + btoa(svg.outerHTML.replace('viewbox', 'viewBox')));
-			saveButton.setAttribute('download', dictName + '-' + markerId + '.svg');
+			saveButton.setAttribute('download', filename);
 			if (markerNum > 0) {
 				if (markerNum > 1) {
 					//document.querySelector('.marker-id').innerHTML = dictName + ' : ' + markerId + ' - ' + (markerId + markerNum - 1);
@@ -413,6 +425,14 @@ function init() {
 		radio.addEventListener('change', updateMarker);
 	}
 	);
+}
+
+function printFunction() {
+	//var printContents = document.querySelector('.marker').innerHTML;
+	//var originalContents = document.body.innerHTML;
+	//document.body.innerHTML = printContents;
+	window.print();
+	//document.body.innerHTML = originalContents;
 }
 
 init();
