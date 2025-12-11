@@ -3,9 +3,37 @@ Online TriOrb markers generator
 
 Generate markers online and save them to SVG and PDF with ease: https://triorb-inc.github.io/TriOrb_Marker_Generator/.
 
-<img src="triorbgen.webp" width="600px">
+<img src="docs/triorbgen.webp" width="600px">
 
 Markers dictionaries are taken from this URL:
 https://raw.githubusercontent.com/opencv/opencv_contrib/master/modules/aruco/src/predefined_dictionaries.hpp.
-
 Learn more about ArUco markers: https://docs.opencv.org/3.2.0/d5/dae/tutorial_aruco_detection.html.
+
+## Versioned deployment with mike
+
+The site is published to GitHub Pages using [mike](https://github.com/jimporter/mike) so that each release can be versioned. The current live version is **1.0**.
+
+### Requirements
+
+Install the documentation tooling locally:
+
+```bash
+pip install -r requirements.txt
+```
+
+### Deploying a new version
+
+1. Build and publish the site to the `gh-pages` branch with the target version. For the current release this is `1.0` and uses the `latest` alias:
+   ```bash
+   mike deploy 1.0 latest -b gh-pages
+   ```
+2. Make sure visitors are directed to the latest version:
+   ```bash
+   mike set-default latest -b gh-pages
+   ```
+3. To preview the versioned site locally before publishing:
+   ```bash
+   mike serve
+   ```
+
+The source files for the site now live under `docs/` so that `mkdocs` and `mike` can package them for GitHub Pages.
