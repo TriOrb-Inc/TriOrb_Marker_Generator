@@ -36,15 +36,15 @@ a {
 }
 
 ul {
-	display: -webkit-flex;
-	display: flex;
-	-webkit-justify-content: center;
-	justify-content: center;
-	-webkit-align-items: center;
-	align-items: center;
+        display: -webkit-flex;
+        display: flex;
+        -webkit-justify-content: center;
+        justify-content: center;
+        -webkit-align-items: center;
+        align-items: center;
 }
 .setup {
-	margin: 0 10px;
+        margin: 0 10px;
 }
 
 .setup input {
@@ -57,28 +57,67 @@ ul {
 }
 
 .setup select {
-	font-weight: 300;
-	margin: 0;
-	font-size: 17px;
-	vertical-align: -1px;
+        font-weight: 300;
+        margin: 0;
+        font-size: 17px;
+        vertical-align: -1px;
 }
 
 .setup {
-	margin: 20px auto;
-	width: 60%;
+        margin: 20px auto;
+        width: 60%;
+}
+
+.field-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 12px 18px;
+        justify-items: stretch;
+        align-items: center;
+        margin-bottom: 20px;
+}
+
+.field-grid .field {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        justify-content: space-between;
+}
+
+.field-grid .field label {
+        text-align: right;
 }
 
 .setup .field {
-	margin: 5px 0;
+        margin: 5px 0;
 }
 
 .setup label {
-	vertical-align: middle;
-	font-size: 15px;
-	width: 150px;
-	text-align: center;
-	display: inline-block;
-	color: #858585;
+        vertical-align: middle;
+        font-size: 15px;
+        width: 180px;
+        text-align: center;
+        display: inline-block;
+        color: #858585;
+}
+
+@media (max-width: 900px) {
+        .setup {
+                width: 90%;
+        }
+
+        .setup input {
+                width: 120px;
+        }
+
+        .setup label {
+                width: 150px;
+                text-align: left;
+        }
+
+        .field-grid {
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        }
 }
 
 .tools {
