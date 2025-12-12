@@ -11,4 +11,14 @@
 /* Allow the main content to use the full available width */
 .wy-nav-content {
   max-width: none;
+  width: 100%;
+}
+
+/* Remove residual width caps on inner content areas */
+.wy-grid-for-nav,
+.wy-body-for-nav,
+.wy-nav-content .rst-content,
+.rst-content {
+  max-width: none;
+  width: 100%;
 }
