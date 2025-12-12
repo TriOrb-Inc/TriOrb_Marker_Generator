@@ -10,6 +10,7 @@ Welcome to the TriOrb marker generator site. Use the hosted tool to create print
   .navbar.fixed-top {
     background-color: rgb(34, 59, 128) !important;
     border-color: rgb(34, 59, 128) !important;
+    background-image: none !important;
     --bs-navbar-color: #fff;
     --bs-navbar-hover-color: #fff;
     --bs-navbar-brand-color: #fff;

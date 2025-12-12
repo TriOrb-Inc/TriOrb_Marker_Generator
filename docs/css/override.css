@@ -9,6 +9,7 @@
 .navbar.fixed-top {
   background-color: rgb(34, 59, 128) !important;
   border-color: rgb(34, 59, 128) !important;
+  background-image: none !important;
   --bs-navbar-color: #fff;
   --bs-navbar-hover-color: #fff;
   --bs-navbar-brand-color: #fff;
