@@ -169,25 +169,39 @@ footer {
 }
 
 @media print {
-	body {
-		-webkit-print-color-adjust: exact;
-		color-adjust: exact;
-		background: white;
-	}
+        @page {
+                margin: 0mm;
+        }
 
-	body > * {
-		display: none;
-	}
+        body {
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+                background: white;
+                margin: 0;
+                padding: 0;
+        }
 
-	.marker-id {
-		display: block !important;
-		text-align: center;
-	}
+        body > * {
+                display: none;
+        }
 
-	.marker {
-		border: none !important;
-		display: block;
-	}
+        .marker-id {
+                display: block !important;
+                text-align: center;
+        }
+
+        .marker {
+                border: none !important;
+                display: block;
+                margin: 0 !important;
+                page-break-inside: avoid;
+        }
+
+        .marker svg {
+                width: 100%;
+                height: 100%;
+                display: block;
+        }
 }
 
 /* From Uiverse.io by adamgiebl */
