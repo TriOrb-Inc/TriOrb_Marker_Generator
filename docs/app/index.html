@@ -62,11 +62,19 @@
 					<label for="field-height">Field height [mm]</label>
 					<input id="field-height" name="height" type="number" min="10" max="10000" value="170" step="0.1">
 				</div>
-				<div class="field">
-					<label for="polygon-num">Polygon Num</label>
-					<input id="polygon-num" name="polygons" type="number" min="0" max="10000" value="50" step="10">
-				</div>
-			</ul>
+                                <div class="field">
+                                        <label for="polygon-num">Polygon Num</label>
+                                        <input id="polygon-num" name="polygons" type="number" min="0" max="10000" value="50" step="10">
+                                </div>
+                                <div class="field">
+                                        <label for="binomial-median">2項分布中央値（大きめの三角形の比率）</label>
+                                        <input id="binomial-median" name="binomial-median" type="number" min="0" max="1" value="0.5" step="0.05">
+                                </div>
+                                <div class="field">
+                                        <label for="contrast">コントラスト強度</label>
+                                        <input id="contrast" name="contrast" type="number" min="0" max="5" value="1.5" step="0.1">
+                                </div>
+                        </ul>
 			<ul>
 				<div class="mydict">
 					<div>

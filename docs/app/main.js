@@ -106,51 +106,61 @@ function rnorm() {
 	return Math.sqrt(-2 * Math.log(1 - Math.random())) * Math.cos(2 * Math.PI * Math.random());
 }
 
-function generateRandomPattern(svg, width, height, point_num) {
-	// Create random centor points
-	let points = [];
-	for (var i = 0; i < point_num; i++) {
-		var x = Math.random() * width;
-		var y = Math.random() * height;
-		points.push([x, y]);
-	}
+function generateRandomPattern(svg, width, height, point_num, bit_size, binomial_median, contrast_strength) {
+        // Create random centor points
+        let points = [];
+        for (var i = 0; i < point_num; i++) {
+                var x = Math.random() * width;
+                var y = Math.random() * height;
+                points.push([x, y]);
+        }
 
-	// Generate polygon
-	let polygons = new Map();
-	for (let xy of points) {
-		let cx = xy[0];
-		let cy = xy[1];
-		let r = Math.abs(rnorm()) * Math.min(width, height) / 2;
-		let poly = [];
-		for (let ii = 0; ii < (4 - Math.round(Math.random())); ii++) {
-			let angle = Math.random() * 2 * Math.PI;
-			let x = cx + (r * Math.cos(angle));
-			let y = cy + (r * Math.sin(angle));
-			poly.push([x, y]);
-		}
-		polygons.set(r, poly);
-	}
+        // Generate polygon (triangles only)
+        let polygons = new Map();
+        const long_cm = 15;
+        const short_cm = 4;
+        const long_prob = Math.min(Math.max(binomial_median, 0), 1);
+        const max_radius = Math.min(width, height) / 2;
+        for (let xy of points) {
+                let cx = xy[0];
+                let cy = xy[1];
+                let is_long = Math.random() < long_prob;
+                let target_length_mm = (is_long ? long_cm : short_cm) * 10;
+                let target_length_viewbox = target_length_mm / bit_size;
+                let base_r = target_length_viewbox / Math.sqrt(3);
+                let r = Math.abs(base_r * (1 + rnorm() * 0.05));
+                r = Math.min(r, max_radius);
+                let poly = [];
+                for (let ii = 0; ii < 3; ii++) {
+                        let angle = Math.random() * 2 * Math.PI;
+                        let x = cx + (r * Math.cos(angle));
+                        let y = cy + (r * Math.sin(angle));
+                        poly.push([x, y]);
+                }
+                polygons.set(r, poly);
+        }
 
-	// 面積の大きい順に描画していく
-	for (let r of Array.from(polygons.keys()).sort((a, b) => b - a)) {
-		var polygon = document.createElement('polygon');
-		let fill_norm = rnorm() / 1.5;
-		let fill_gray = fill_norm > 0 ? 1 - fill_norm : 1 + fill_norm;
-		let fill_color = 'rgb(' + Math.floor(255 * fill_gray) + ',' + Math.floor(255 * fill_gray) + ',' + Math.floor(255 * fill_gray) + ')';
-		let stroke_gray = fill_gray > 0.5 ? 0 : 1;
-		let stroke_color = 'rgb(' + Math.floor(255 * stroke_gray) + ',' + Math.floor(255 * stroke_gray) + ',' + Math.floor(255 * stroke_gray) + ')';
-		let stroke_width = r / 20;
-		polygon.setAttribute('fill', fill_color);
-		polygon.setAttribute('stroke', stroke_color);
-		polygon.setAttribute('stroke-width', stroke_width);
-		polygon.setAttribute('stroke-linejoin', 'round');
-		polygon.setAttribute('points', polygons.get(r).map(function (p) {
-			return p.join(',');
-		}).join(' '));
-		svg.appendChild(polygon);
-	}
+        // 面積の大きい順に描画していく
+        for (let r of Array.from(polygons.keys()).sort((a, b) => b - a)) {
+                var polygon = document.createElement('polygon');
+                let base_gray = 0.5 + rnorm() * 0.15;
+                let adjusted_gray = 0.5 + (base_gray - 0.5) * contrast_strength;
+                let fill_gray = Math.min(Math.max(adjusted_gray, 0), 1);
+                let fill_color = 'rgb(' + Math.floor(255 * fill_gray) + ',' + Math.floor(255 * fill_gray) + ',' + Math.floor(255 * fill_gray) + ')';
+                let stroke_gray = fill_gray > 0.5 ? 0 : 1;
+                let stroke_color = 'rgb(' + Math.floor(255 * stroke_gray) + ',' + Math.floor(255 * stroke_gray) + ',' + Math.floor(255 * stroke_gray) + ')';
+                let stroke_width = r / 20;
+                polygon.setAttribute('fill', fill_color);
+                polygon.setAttribute('stroke', stroke_color);
+                polygon.setAttribute('stroke-width', stroke_width);
+                polygon.setAttribute('stroke-linejoin', 'round');
+                polygon.setAttribute('points', polygons.get(r).map(function (p) {
+                        return p.join(',');
+                }).join(' '));
+                svg.appendChild(polygon);
+        }
 
-	return svg;
+        return svg;
 }
 
 var dict;
@@ -164,7 +174,7 @@ function selectedLayout() {
 	return "layout-tile";
 }
 
-function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_width, field_height, polygon_num, max_rows, max_cols) {
+function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_width, field_height, polygon_num, max_rows, max_cols, binomial_median, contrast_strength) {
 	console.log('Generate ArUco marker ' + dictName + ' ' + id + ' - ' + (id + num - 1) + ' with size ' + width + 'x' + height + ' mm' + ' and layout ' + selectedLayout());
 	var viebox_width = (field_width / bit_size);
 	var viebox_height = (field_height / bit_size);
@@ -177,8 +187,8 @@ function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_
 	svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
 	svg.setAttribute('shape-rendering', 'crispEdges');
 
-	// Generate Random pattern
-	svg = generateRandomPattern(svg, viebox_width, viebox_height, polygon_num);
+        // Generate Random pattern
+        svg = generateRandomPattern(svg, viebox_width, viebox_height, polygon_num, bit_size, binomial_median, contrast_strength);
 
 	let float_h_max = (max_cols > 0 && selectedLayout().match(/float/)) ? max_cols : Math.floor(viebox_width / (width + 4));
 	let float_v_max = (max_rows > 0 && selectedLayout().match(/float/)) ? max_rows : Math.floor(viebox_height / (height + 4));
@@ -365,13 +375,15 @@ function init() {
 	var markerIdInput = document.querySelector('.setup input[name=id]');
 	var sizeInput = document.querySelector('.setup input[name=size]');
 	var saveButton = document.querySelector('.save-button');
-	var fieldWidthInput = document.querySelector('.field input[name=width]');
-	var fieldHeightInput = document.querySelector('.field input[name=height]');
-	var markerNumInput = document.querySelector('.field input[name=num]');
-	var polygonNumInput = document.querySelector('.field input[name=polygons]');
-	var markerLayout = document.getElementsByName('marker-layout');
-	var maxRowsInput = document.querySelector('.field input[name=max-rows');
-	var maxColsInput = document.querySelector('.field input[name=max-cols');
+        var fieldWidthInput = document.querySelector('.field input[name=width]');
+        var fieldHeightInput = document.querySelector('.field input[name=height]');
+        var markerNumInput = document.querySelector('.field input[name=num]');
+        var polygonNumInput = document.querySelector('.field input[name=polygons]');
+        var binomialMedianInput = document.querySelector('.field input[name=binomial-median]');
+        var contrastInput = document.querySelector('.field input[name=contrast]');
+        var markerLayout = document.getElementsByName('marker-layout');
+        var maxRowsInput = document.querySelector('.field input[name=max-rows');
+        var maxColsInput = document.querySelector('.field input[name=max-cols');
 
 	const params = new URLSearchParams(location.search);
 	if (params.has('dict')) {
@@ -392,12 +404,18 @@ function init() {
 	if (params.has('num')) {
 		markerNumInput.value = params.get('num');
 	}
-	if (params.has('polygons')) {
-		polygonNumInput.value = params.get('polygons');
-	}
-	if (params.has('marker-layout')) {
-		document.getElementById('layout-' + params.get('marker-layout')).checked = true;
-		if (params.get('marker-layout').match(/float/)) {
+        if (params.has('polygons')) {
+                polygonNumInput.value = params.get('polygons');
+        }
+        if (params.has('binomial-median')) {
+                binomialMedianInput.value = params.get('binomial-median');
+        }
+        if (params.has('contrast')) {
+                contrastInput.value = params.get('contrast');
+        }
+        if (params.has('marker-layout')) {
+                document.getElementById('layout-' + params.get('marker-layout')).checked = true;
+                if (params.get('marker-layout').match(/float/)) {
 			maxRowsInput.disabled = false;
 			maxColsInput.disabled = false;
 		} else {
@@ -421,12 +439,14 @@ function init() {
 		var markerHeight = Number(option.getAttribute('data-height'));
 		var maxId = (Number(option.getAttribute('data-number')) || 1000) - 1;
 		var fieldWidth = Number(fieldWidthInput.value);
-		var fieldHeight = Number(fieldHeightInput.value);
-		var markerNum = Number(markerNumInput.value);
-		var bitSize = markerSize / (markerWidth + 2);
-		var polygonNum = Number(polygonNumInput.value);
-		var maxRows = Number(maxRowsInput.value);
-		var maxCols = Number(maxColsInput.value);
+                var fieldHeight = Number(fieldHeightInput.value);
+                var markerNum = Number(markerNumInput.value);
+                var bitSize = markerSize / (markerWidth + 2);
+                var polygonNum = Number(polygonNumInput.value);
+                var binomialMedian = Number(binomialMedianInput.value);
+                var contrastStrength = Number(contrastInput.value);
+                var maxRows = Number(maxRowsInput.value);
+                var maxCols = Number(maxColsInput.value);
 
 		markerIdInput.setAttribute('max', maxId);
 
@@ -437,8 +457,8 @@ function init() {
 
 		// Wait until dict data is loaded
 		loadDict.then(function() {
-			// Generate marker
-			var svg = generateTriOrbMarker(markerWidth, markerHeight, dictName, markerId, markerNum, bitSize, fieldWidth, fieldHeight, polygonNum, maxRows, maxCols);
+                        // Generate marker
+                        var svg = generateTriOrbMarker(markerWidth, markerHeight, dictName, markerId, markerNum, bitSize, fieldWidth, fieldHeight, polygonNum, maxRows, maxCols, binomialMedian, contrastStrength);
 			if (!svg) {
 				return;
 			}
@@ -475,12 +495,14 @@ function init() {
 	markerIdInput.addEventListener('input', updateMarker);
 	sizeInput.addEventListener('input', updateMarker);
 	fieldWidthInput.addEventListener('input', updateMarker);
-	fieldHeightInput.addEventListener('input', updateMarker);
-	markerNumInput.addEventListener('input', updateMarker);
-	polygonNumInput.addEventListener('input', updateMarker);
-	markerLayout.forEach(function (radio) {
-		radio.addEventListener('change', function (radio) {
-			updateMarker();
+        fieldHeightInput.addEventListener('input', updateMarker);
+        markerNumInput.addEventListener('input', updateMarker);
+        polygonNumInput.addEventListener('input', updateMarker);
+        binomialMedianInput.addEventListener('input', updateMarker);
+        contrastInput.addEventListener('input', updateMarker);
+        markerLayout.forEach(function (radio) {
+                radio.addEventListener('change', function (radio) {
+                        updateMarker();
 			if (radio.target.id.match(/float/)) {
 				maxRowsInput.disabled = false;
 				maxColsInput.disabled = false;
