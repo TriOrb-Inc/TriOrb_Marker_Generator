@@ -71,23 +71,22 @@
 <li><strong>About the tool:</strong> The app is bundled as a static HTML experience under <code>app/</code> and is included in versioned documentation builds produced by MkDocs and mike.</li>
 </ul>
 <style>
-  /* タイトルバーの配色と検索非表示を確実に反映 */
-  .navbar.navbar-default,
-  .navbar.navbar-default .navbar-collapse,
-  .navbar.navbar-default .navbar-form {
+  /* タイトルバーの配色と検索非表示を確実に反映（Bootstrap 5 nav対応） */
+  .navbar.fixed-top {
     background-color: rgb(34, 59, 128) !important;
     border-color: rgb(34, 59, 128) !important;
+    --bs-navbar-color: #fff;
+    --bs-navbar-hover-color: #fff;
+    --bs-navbar-brand-color: #fff;
+    --bs-navbar-brand-hover-color: #fff;
   }
-  .navbar-default .navbar-brand,
-  .navbar-default .navbar-nav > li > a,
-  .navbar-default .navbar-nav > li > a:focus,
-  .navbar-default .navbar-nav > li > a:hover,
-  .navbar-default .navbar-brand:focus,
-  .navbar-default .navbar-brand:hover {
+  .navbar.fixed-top .navbar-brand,
+  .navbar.fixed-top .nav-link {
     color: #fff !important;
   }
-  form.navbar-form[role="search"],
-  input#mkdocs-search-query {
+  #navbar-collapse .nav-link[data-bs-target="#mkdocs_search_modal"],
+  #navbar-collapse .fa-search,
+  #navbar-collapse .nav.navbar-nav.ms-md-auto {
     display: none !important;
   }
 </style>
@@ -185,5 +184,5 @@
 
 <!--
 MkDocs version : 1.6.1
-Build Date UTC : 2025-12-12 03:40:49.032255+00:00
+Build Date UTC : 2025-12-12 03:48:14.398060+00:00
 -->
