@@ -143,8 +143,9 @@ function generateRandomPattern(svg, width, height, point_num, bit_size, large_si
         for (let r of Array.from(polygons.keys()).sort((a, b) => b - a)) {
                 var polygon = document.createElement('polygon');
                 let base_gray = 0.5 + rnorm() * 0.15;
-                let adjusted_gray = 0.5 + (base_gray - 0.5) * contrast_strength;
-                let fill_gray = Math.min(Math.max(adjusted_gray, 0), 1);
+                let centered_gray = base_gray - 0.5;
+                let contrast_scaled = Math.tanh(centered_gray * Math.max(contrast_strength, 0) * 2);
+                let fill_gray = Math.min(Math.max(0.5 + contrast_scaled, 0), 1);
                 let fill_color = 'rgb(' + Math.floor(255 * fill_gray) + ',' + Math.floor(255 * fill_gray) + ',' + Math.floor(255 * fill_gray) + ')';
                 let stroke_gray = fill_gray > 0.5 ? 0 : 1;
                 let stroke_color = 'rgb(' + Math.floor(255 * stroke_gray) + ',' + Math.floor(255 * stroke_gray) + ',' + Math.floor(255 * stroke_gray) + ')';
@@ -370,10 +371,11 @@ function getUrlQueries() {
 }
 
 function init() {
-	var dictSelect = document.querySelector('.setup select[name=dict]');
-	var markerIdInput = document.querySelector('.setup input[name=id]');
-	var sizeInput = document.querySelector('.setup input[name=size]');
-	var saveButton = document.querySelector('.save-button');
+        var dictSelect = document.querySelector('.setup select[name=dict]');
+        var markerIdInput = document.querySelector('.setup input[name=id]');
+        var sizeInput = document.querySelector('.setup input[name=size]');
+        var saveButton = document.querySelector('.save-button');
+        var setupForm = document.querySelector('.setup');
         var fieldWidthInput = document.querySelector('.field input[name=width]');
         var fieldHeightInput = document.querySelector('.field input[name=height]');
         var markerNumInput = document.querySelector('.field input[name=num]');
@@ -494,11 +496,11 @@ function init() {
 
 	updateMarker();
 
-	dictSelect.addEventListener('change', updateMarker);
-	dictSelect.addEventListener('input', updateMarker);
-	markerIdInput.addEventListener('input', updateMarker);
-	sizeInput.addEventListener('input', updateMarker);
-	fieldWidthInput.addEventListener('input', updateMarker);
+        dictSelect.addEventListener('change', updateMarker);
+        dictSelect.addEventListener('input', updateMarker);
+        markerIdInput.addEventListener('input', updateMarker);
+        sizeInput.addEventListener('input', updateMarker);
+        fieldWidthInput.addEventListener('input', updateMarker);
         fieldHeightInput.addEventListener('input', updateMarker);
         markerNumInput.addEventListener('input', updateMarker);
         polygonNumInput.addEventListener('input', updateMarker);
@@ -508,17 +510,25 @@ function init() {
         markerLayout.forEach(function (radio) {
                 radio.addEventListener('change', function (radio) {
                         updateMarker();
-			if (radio.target.id.match(/float/)) {
-				maxRowsInput.disabled = false;
+                        if (radio.target.id.match(/float/)) {
+                                maxRowsInput.disabled = false;
 				maxColsInput.disabled = false;
 			} else {
 				maxRowsInput.disabled = true;
 				maxColsInput.disabled = true;
 			}
 		});
-	});
-	maxColsInput.addEventListener('input', updateMarker);
-	maxRowsInput.addEventListener('input', updateMarker);
+        });
+        maxColsInput.addEventListener('input', updateMarker);
+        maxRowsInput.addEventListener('input', updateMarker);
+
+        setupForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+                var params = new URLSearchParams(new FormData(setupForm));
+                var target = (window.top && window.top.location) ? window.top.location : window.location;
+                var newUrl = target.origin + target.pathname + '?' + params.toString() + target.hash;
+                target.href = newUrl;
+        });
 }
 
 function printFunction() {
