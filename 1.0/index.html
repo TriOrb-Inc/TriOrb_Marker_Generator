@@ -1,147 +1,156 @@
 <!DOCTYPE html>
-<html>
-	<head>
-		<link rel="stylesheet" href="main.css"/>
-		<meta name="description" content="Generate TriOrb marker for printing with dictionary selection">
-		<meta name="keywords" content="TriOrb, ArUco, AprilTag, OpenCV, april, tag, marker, dictionary, family, print, pdf, svg, computer vision, robotics">
-		<link rel="icon" type="image/png" href="favicon.png">
-		<title>Online TriOrb markers generator</title>
-	</head>
-	<body>
-		<h1>TriOrb markers generator!</h1>
-		<form class="setup">
-			<ul>
-				<div class="field">
-					<label for="frm-dict">Marker Type:</label>
-					<select name="dict" id="frm-dict">
-						<optgroup label="ArUco">
-							<option value="aruco" data-width="5" data-height="5" data-number="1024">Original ArUco</option>
-							<option value="4x4_1000" data-width="4" data-height="4">4x4 (50, 100, 250, 1000)</option>
-							<option value="5x5_1000" data-width="5" data-height="5">5x5 (50, 100, 250, 1000)</option>
-							<option value="6x6_1000" data-width="6" data-height="6">6x6 (50, 100, 250, 1000)</option>
-							<option selected value="7x7_1000" data-width="7" data-height="7">7x7 (50, 100, 250, 1000)</option>
-							<option value="mip_36h12" data-width="6" data-height="6" data-number="250">MIP_36h12 (250)</option>
-						</optgroup>
-						<optgroup label="AprilTag">
-							<option value="april_16h5" data-width="4" data-height="4" data-number="30">AprilTag 16h5 (30)</option>
-							<option value="april_25h9" data-width="5" data-height="5" data-number="35">AprilTag 25h9 (35)</option>
-							<option value="april_36h10" data-width="6" data-height="6" data-number="2320">AprilTag 36h10 (2320)</option>
-							<option value="april_36h11" data-width="6" data-height="6" data-number="587">AprilTag 36h11 (587)</option>
-						</optgroup>
-					</select>
-				</div>
-				<div class="field">
-					<label for="frm-size">Marker size [mm]</label>
-					<input id="frm-size" name="size" type="number" min="1" max="5000" value="40" step="0.1">
-				</div>
-				<div class="field">
-					<label for="frm-id">Marker ID</label>
-					<input id="frm-id" name="id" type="number" min="0" max="999" value="0" step="1">
-				</div>
-			</ul>
-			<ul>
-				<div class="field">
-					<label for="frm-num">Marker Num</label>
-					<input id="frm-num" name="num" type="number" min="0" max="1000" value="0" step="1">
-				</div>
-				<div class="field">
-					<label for="max-rows">Max rows</label>
-					<input id="max-rows" name="max-rows" type="number" min="0" max="1000" value="0" step="1" disabled>
-				</div>
-				<div class="field">
-					<label for="max-cols">Max cols</label>
-					<input id="max-cols" name="max-cols" type="number" min="0" max="1000" value="0" step="1" disabled>
-				</div>
-			</ul>
-			<ul>
-				<div class="field">
-					<label for="field-width">Field width [mm]</label>
-					<input id="field-width" name="width" type="number" min="10" max="10000" value="170" step="0.1">
-				</div>
-				<div class="field">
-					<label for="field-height">Field height [mm]</label>
-					<input id="field-height" name="height" type="number" min="10" max="10000" value="170" step="0.1">
-				</div>
-				<div class="field">
-					<label for="polygon-num">Polygon Num</label>
-					<input id="polygon-num" name="polygons" type="number" min="0" max="10000" value="50" step="10">
-				</div>
-			</ul>
-			<ul>
-				<div class="mydict">
-					<div>
-					  <label>
-						<input type="radio" name="marker-layout" id="layout-tile" value="tile" checked="" />
-						<img src="icons/layout_1_tile.svg" width="100" height="100" title="tile"/>
-					  </label>
-					  <label>
-						<input type="radio" name="marker-layout" id="layout-h-stack" value="h-stack" />
-						<img src="icons/layout_2_hstack.svg" width="100" height="100" title="h-stack" />
-					  </label>
-					  <label>
-						<input type="radio" name="marker-layout" id="layout-v-stack" value="v-stack" />
-						<img src="icons/layout_3_vstack.svg" width="100" height="100" title="v-stack"/>
-					  </label>
-					  <label>
-						<input type="radio" name="marker-layout" id="layout-h-float" value="h-float" />
-						<img src="icons/layout_4_hfloat.svg" width="100" height="100" title="h-float" />
-					  </label>
-					  <label>
-						<input type="radio" name="marker-layout" id="layout-v-float" value="v-float" />
-						<img src="icons/layout_5_vfloat.svg" width="100" height="100" title="v-float"/>
-					  </label>
-					</div>
-				  </div>
-			</ul>
-			<ul>
-				<input type="text" id="error-message" style="display: none; width: 100%; color: red; border-width: 0; font-size:large; font-weight: bold; text-align: center;" value="" readonly>
-			</ul>
-			<ul>
-				<div class="field" style="text-align: center;">
-					<button type="submit", id="refresh">Refresh</button>
-				</div>
-			</ul>
-			
-		</form>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="None">
+        
+        <link rel="canonical" href="https://triorb-inc.github.io/TriOrb_Marker_Generator/1.0/index.html">
+        <link rel="shortcut icon" href="img/favicon.ico">
+        <title>TriOrb Marker Generator</title>
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+        <link href="css/fontawesome.min.css" rel="stylesheet">
+        <link href="css/brands.min.css" rel="stylesheet">
+        <link href="css/solid.min.css" rel="stylesheet">
+        <link href="css/v4-font-face.min.css" rel="stylesheet">
+        <link href="css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <link href="css/version-select.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
 
-		<!--<div class="marker-id"></div>-->
-		<div class="tools">
-			<a href="" class="save-button">Save</a> this marker as SVG, or
-			<!--<a href="javascript:window.print()">open</a> standard browser's print dialog to print or get the PDF.-->
-			<a href="javascript:printFunction();">open</a> standard browser's print dialog to print or get the PDF.
-		</div>
+    <body class="homepage">
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="index.html">TriOrb Marker Generator</a>
 
-		<div class="marker"></div>
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
 
-		<footer>
-			<div>
-				<a href="https://github.com/TriOrb-Inc/TriOrb_Marker_Generator/"><nobr>GitHub Repository</nobr></a>
-				<!--If you like this project, please <a href="https://github.com/okalachev/arucogen"><nobr>★ it on GitHub</nobr></a>!-->
-			</div>
-			<div>Copyright 2023 TriOrb Inc.</div>
-			<div>Based on original work Author: <a href="http://chev.me">Oleg Kalachev</a>.</div>
-		</footer>
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
 
-		<script type="text/javascript" src="main.js"></script>
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
 
-		<!-- Yandex.Metrika counter --> 
-		<script type="text/javascript" > 
-			(function (d, w, c) { (w[c] = w[c] || []).push(function() { 
-				try { w.yaCounter37286925 = new Ya.Metrika({ id:37286925, clickmap:true, trackLinks:true, accurateTrackBounce:true }); } catch(e) { } 
-			}); 
-			var n = d.getElementsByTagName("script")[0], s = d.createElement("script"), f = function () { n.parentNode.insertBefore(s, n); };
-			s.type = "text/javascript"; 
-			s.async = true; 
-			s.src = "https://mc.yandex.ru/metrika/watch.js"; 
-			if (w.opera == "[object Opera]") { d.addEventListener("DOMContentLoaded", f, false); } 
-			else { f(); } })(document, window, "yandex_metrika_callbacks"); 
-		</script> 
-		
-		<noscript>
-			<div>
-				<img src="https://mc.yandex.ru/watch/37286925" style="position:absolute; left:-9999px;" alt="" />
-			</div>
-		</noscript> 
-		<!-- /Yandex.Metrika counter -->
-	</body>
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#triorb-marker-generator" class="nav-link">TriOrb Marker Generator</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="triorb-marker-generator">TriOrb Marker Generator</h1>
+<p>Welcome to the TriOrb marker generator site. Use the hosted tool to create printable markers and export them as SVG or PDF files.</p>
+<ul>
+<li><strong>Launch the generator:</strong> <a href="app/index.html">Open the web app</a></li>
+<li><strong>About the tool:</strong> The app is bundled as a static HTML experience under <code>app/</code> and is included in versioned documentation builds produced by MkDocs and mike.</li>
+</ul>
+<iframe src="app/index.html" title="TriOrb Marker Generator" style="width: 100%; height: 900px; border: 1px solid #ddd; border-radius: 8px;"></iframe></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = ".",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="js/base.js"></script>
+        <script src="search/main.js"></script>
+        <script src="js/version-select.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
 </html>
+
+<!--
+MkDocs version : 1.6.1
+Build Date UTC : 2025-12-12 01:37:28.057167+00:00
+-->
