@@ -27,7 +27,7 @@ pip install -r requirements.txt
 
 ### Deploying a new version
 
-初回セットアップ時は、`mike serve` でプレビューする前に少なくとも一度 `mike deploy` と `mike set-default` を実行し、バージョン付きビルドとデフォルトエイリアスを作成してください。これらを実行していない場合、`mike serve` のトップページで 404 が返されます。
+初回セットアップ時は、`mike serve` でプレビューする前に少なくとも一度 `mike deploy` と `mike set-default` を実行し、バージョン付きビルドとデフォルトエイリアスを作成してください。これらを実行していない場合、`mike serve` のトップページで 404 が返されます。また、バージョン付けしたサイトをビルドすると、ヘッダー左上のサイト名の横にバージョン切り替えメニューが表示されます。
 
 1. Build and publish the site to the `gh-pages` branch with the target version. For the current release this is `1.0` and uses the `latest` alias:
    ```bash
@@ -37,7 +37,11 @@ pip install -r requirements.txt
    ```bash
    mike set-default latest -b gh-pages
    ```
-3. To preview the versioned site locally before publishing:
+3. 変更内容を GitHub Pages 用のブランチに反映させます:
+   ```bash
+   git push origin gh-pages
+   ```
+4. To preview the versioned site locally before publishing:
    ```bash
    mike serve
    ```
