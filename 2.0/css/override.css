@@ -5,6 +5,23 @@
   display: none !important;
 }
 
+/* Header bar styling */
+.navbar-default {
+  background-color: rgb(34, 59, 128);
+  border-color: rgb(34, 59, 128);
+}
+
+.navbar-default .navbar-brand,
+.navbar-default .navbar-nav > li > a {
+  color: #fff !important;
+}
+
+/* Hide the search box in the top bar */
+form.navbar-form[role="search"],
+input#mkdocs-search-query {
+  display: none !important;
+}
+
 /* Let the main column consume the full row width */
 .container .row > .col-md-9 {
   flex: 0 0 100%;
