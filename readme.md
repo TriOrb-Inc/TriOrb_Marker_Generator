@@ -47,3 +47,14 @@ pip install -r requirements.txt
    ```
 
 The source files for the site now live under `docs/` so that `mkdocs` and `mike` can package them for GitHub Pages.
+
+### GitHub リポジトリ設定（GitHub Pages）
+
+`gh-pages` ブランチへデプロイした成果物を公開するには、リポジトリ設定の **Pages** で以下を確認・設定してください。
+
+1. `Settings` → `Pages` を開き、**Build and deployment** の `Source` を **Deploy from a branch** に変更します。
+2. `Branch` で **gh-pages** と **/（root）** を選択し、`Save` を押します。
+3. カスタムドメインを設定しない場合は **Custom domain** 欄を空のままにします。
+4. HTTPS 配信を有効化するため **Enforce HTTPS** にチェックを入れます。
+
+以上を設定した後に `mike deploy` / `mike set-default` / `git push origin gh-pages` を実行すると、バージョン付きドキュメントが GitHub Pages で公開されます。
