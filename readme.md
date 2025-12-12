@@ -15,11 +15,15 @@ The site is published to GitHub Pages using [mike](https://github.com/jimporter/
 
 ### Requirements
 
-Install the documentation tooling locally:
+ドキュメントビルド用の依存関係は仮想環境上で管理します。リポジトリのルートで以下を実行してください。
 
 ```bash
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
+
+以降の `mike` コマンドも仮想環境を有効化した状態で実行してください。
 
 ### Deploying a new version
 
