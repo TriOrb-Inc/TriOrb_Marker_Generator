@@ -1,0 +1,238 @@
+/**
+ * Copyright 2023 TriOrb Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * 
+ * Based on original work Copyright (c) 2018 Oleg Kalachev
+ * 
+ */
+body {
+	font-family: sans-serif;
+	padding: 0;
+	margin: 0;
+}
+
+h1 {
+	font-weight: normal;
+	text-align: center;
+	font-size: 22px;
+	margin: 20px;
+	margin-bottom: 40px;
+}
+
+a {
+	color: #4761c7;
+	text-decoration: none;
+}
+
+ul {
+	display: -webkit-flex;
+	display: flex;
+	-webkit-justify-content: center;
+	justify-content: center;
+	-webkit-align-items: center;
+	align-items: center;
+}
+.setup {
+	margin: 0 10px;
+}
+
+.setup input {
+	font-weight: 300;
+	margin: 0;
+	font-size: 15px;
+	padding: 2px;
+	width: 130px;
+	vertical-align: -1px;
+}
+
+.setup select {
+	font-weight: 300;
+	margin: 0;
+	font-size: 17px;
+	vertical-align: -1px;
+}
+
+.setup {
+	margin: 20px auto;
+	width: 60%;
+}
+
+.setup .field {
+	margin: 5px 0;
+}
+
+.setup label {
+	vertical-align: middle;
+	font-size: 15px;
+	width: 150px;
+	text-align: center;
+	display: inline-block;
+	color: #858585;
+}
+
+.tools {
+	margin: 20px;
+	text-align: center;
+	line-height: 20px;
+}
+
+.tools a {
+	font-weight: bold;
+}
+
+.marker-id {
+	display: none;
+}
+
+.marker {
+	text-align: center;
+	background: white;
+	margin: 40px;
+}
+
+.marker table {
+	border: none;
+	border-collapse: collapse;
+	margin: 0;
+	padding: 0;
+	width: 100mm;
+	height: 100mm;
+}
+
+.marker table td {
+	margin: 0;
+	padding: 0;
+	border: none;
+	background: white;
+}
+
+footer {
+	font-weight: normal;
+	margin: 20px;
+	margin-top: 60px;
+	text-align: right;
+	font-size: 13px;
+	color: #919191;
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+}
+
+@media print {
+	body {
+		-webkit-print-color-adjust: exact;
+		color-adjust: exact;
+		background: white;
+	}
+
+	body > * {
+		display: none;
+	}
+
+	.marker-id {
+		display: block !important;
+		text-align: center;
+	}
+
+	.marker {
+		border: none !important;
+		display: block;
+	}
+}
+
+/* From Uiverse.io by adamgiebl */
+button {
+	display: flex;
+	margin: auto;
+	font-size: 18px;
+	margin: 15px;
+	padding: 10px;
+	text-align: center;
+	height: 40px;
+	letter-spacing: 1px;
+	text-decoration: none;
+	color: #725AC1;
+	background: transparent;
+	cursor: pointer;
+	/*transition: ease-out 0.1s;*/
+	border: 2px solid #725AC1;
+	border-radius: 10px;
+	box-shadow: inset 0 0 0 0 #725AC1;
+}
+
+
+button:hover {
+	color: white;
+	box-shadow: inset 0 -100px 0 0 #725AC1;
+	transition: ease-out 0.5s;
+}
+
+button:active {
+	transform: scale(0.9);
+	transition: ease-out 0.5s;
+}
+/* From Uiverse.io by mahiatlinux */
+.mydict:focus {
+	outline: 0;
+	border-color: #4d82ff;
+	box-shadow: 0 0 0 4px #2a4a8f;
+}
+
+.mydict div {
+	display: flex;
+	flex-wrap: wrap;
+	margin-top: 0.5rem;
+	justify-content: center;
+}
+
+.mydict input[type="radio"] {
+	clip: rect(0 0 0 0);
+	clip-path: inset(100%);
+	height: 1px;
+	overflow: hidden;
+	position: absolute;
+	white-space: nowrap;
+	width: 1px;
+}
+
+.mydict input[type="radio"]:checked+img {
+	box-shadow: 0 0 0 0.0625em #4d82ff;
+	background-color: #ffffff00;
+	z-index: 1;
+	color: #4d82ff;
+	opacity: 1;
+}
+
+label img {
+	display: block;
+	cursor: pointer;
+	background-color: #ffffff00;
+	padding: 0.375em 1.62em;
+	position: relative;
+	margin-left: 0.0625em;
+	box-shadow: 0 0 0 0.0625em #4a5568;
+	letter-spacing: 0.05em;
+	color: #a0aec0;
+	text-align: center;
+	transition: background-color 0.5s ease;
+	opacity: 0.3;
+}
+
+label:first-child img {
+	border-radius: 0.375em 0 0 0.375em;
+}
+
+label:last-child img {
+	border-radius: 0 0.375em 0.375em 0;
+}
