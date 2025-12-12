@@ -43,14 +43,6 @@
                                         <input id="frm-num" name="num" type="number" min="0" max="1000" value="0" step="1">
                                 </div>
                                 <div class="field">
-                                        <label for="max-rows">Max rows</label>
-                                        <input id="max-rows" name="max-rows" type="number" min="0" max="1000" value="0" step="1" disabled>
-                                </div>
-                                <div class="field">
-                                        <label for="max-cols">Max cols</label>
-                                        <input id="max-cols" name="max-cols" type="number" min="0" max="1000" value="0" step="1" disabled>
-                                </div>
-                                <div class="field">
                                         <label for="field-width">Field width [mm]</label>
                                         <input id="field-width" name="width" type="number" min="10" max="10000" value="170" step="0.1">
                                 </div>
@@ -78,28 +70,20 @@
                         <ul>
                                 <div class="mydict">
                                         <div>
-					  <label>
-						<input type="radio" name="marker-layout" id="layout-tile" value="tile" checked="" />
-						<img src="icons/layout_1_tile.svg" width="100" height="100" title="tile"/>
-					  </label>
-					  <label>
-						<input type="radio" name="marker-layout" id="layout-h-stack" value="h-stack" />
-						<img src="icons/layout_2_hstack.svg" width="100" height="100" title="h-stack" />
-					  </label>
-					  <label>
-						<input type="radio" name="marker-layout" id="layout-v-stack" value="v-stack" />
-						<img src="icons/layout_3_vstack.svg" width="100" height="100" title="v-stack"/>
-					  </label>
-					  <label>
-						<input type="radio" name="marker-layout" id="layout-h-float" value="h-float" />
-						<img src="icons/layout_4_hfloat.svg" width="100" height="100" title="h-float" />
-					  </label>
-					  <label>
-						<input type="radio" name="marker-layout" id="layout-v-float" value="v-float" />
-						<img src="icons/layout_5_vfloat.svg" width="100" height="100" title="v-float"/>
-					  </label>
-					</div>
-				  </div>
+                                          <label>
+                                                <input type="radio" name="marker-layout" id="layout-tile" value="tile" checked="" />
+                                                <img src="icons/layout_1_tile.svg" width="100" height="100" title="tile"/>
+                                          </label>
+                                          <label>
+                                                <input type="radio" name="marker-layout" id="layout-h-stack" value="h-stack" />
+                                                <img src="icons/layout_2_hstack.svg" width="100" height="100" title="h-stack" />
+                                          </label>
+                                          <label>
+                                                <input type="radio" name="marker-layout" id="layout-v-stack" value="v-stack" />
+                                                <img src="icons/layout_3_vstack.svg" width="100" height="100" title="v-stack"/>
+                                          </label>
+                                        </div>
+                                  </div>
 			</ul>
 			<ul>
 				<input type="text" id="error-message" style="display: none; width: 100%; color: red; border-width: 0; font-size:large; font-weight: bold; text-align: center;" value="" readonly>
