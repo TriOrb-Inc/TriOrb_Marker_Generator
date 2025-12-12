@@ -5,6 +5,29 @@
   display: none !important;
 }
 
+/* Header bar styling (Bootstrap 5 nav) */
+.navbar.fixed-top {
+  background-color: rgb(34, 59, 128) !important;
+  border-color: rgb(34, 59, 128) !important;
+  background-image: none !important;
+  --bs-navbar-color: #fff;
+  --bs-navbar-hover-color: #fff;
+  --bs-navbar-brand-color: #fff;
+  --bs-navbar-brand-hover-color: #fff;
+}
+
+.navbar.fixed-top .navbar-brand,
+.navbar.fixed-top .nav-link {
+  color: #fff !important;
+}
+
+/* Hide the search box in the top bar */
+#navbar-collapse .nav-link[data-bs-target="#mkdocs_search_modal"],
+#navbar-collapse .fa-search,
+#navbar-collapse .nav.navbar-nav.ms-md-auto {
+  display: none !important;
+}
+
 /* Let the main column consume the full row width */
 .container .row > .col-md-9 {
   flex: 0 0 100%;
