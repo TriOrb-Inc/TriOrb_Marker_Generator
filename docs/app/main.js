@@ -106,7 +106,7 @@ function rnorm() {
 	return Math.sqrt(-2 * Math.log(1 - Math.random())) * Math.cos(2 * Math.PI * Math.random());
 }
 
-function generateRandomPattern(svg, width, height, point_num, bit_size, binomial_median, contrast_strength) {
+function generateRandomPattern(svg, width, height, point_num, bit_size, large_side_cm, small_side_cm, contrast_strength) {
         // Create random centor points
         let points = [];
         for (var i = 0; i < point_num; i++) {
@@ -117,14 +117,13 @@ function generateRandomPattern(svg, width, height, point_num, bit_size, binomial
 
         // Generate polygon (triangles only)
         let polygons = new Map();
-        const long_cm = 15;
-        const short_cm = 4;
-        const long_prob = Math.min(Math.max(binomial_median, 0), 1);
+        const long_cm = Math.max(large_side_cm, 0);
+        const short_cm = Math.max(small_side_cm, 0);
         const max_radius = Math.min(width, height) / 2;
         for (let xy of points) {
                 let cx = xy[0];
                 let cy = xy[1];
-                let is_long = Math.random() < long_prob;
+                let is_long = Math.random() < 0.5;
                 let target_length_mm = (is_long ? long_cm : short_cm) * 10;
                 let target_length_viewbox = target_length_mm / bit_size;
                 let base_r = target_length_viewbox / Math.sqrt(3);
@@ -174,7 +173,7 @@ function selectedLayout() {
 	return "layout-tile";
 }
 
-function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_width, field_height, polygon_num, max_rows, max_cols, binomial_median, contrast_strength) {
+function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_width, field_height, polygon_num, max_rows, max_cols, large_side_cm, small_side_cm, contrast_strength) {
 	console.log('Generate ArUco marker ' + dictName + ' ' + id + ' - ' + (id + num - 1) + ' with size ' + width + 'x' + height + ' mm' + ' and layout ' + selectedLayout());
 	var viebox_width = (field_width / bit_size);
 	var viebox_height = (field_height / bit_size);
@@ -188,7 +187,7 @@ function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_
 	svg.setAttribute('shape-rendering', 'crispEdges');
 
         // Generate Random pattern
-        svg = generateRandomPattern(svg, viebox_width, viebox_height, polygon_num, bit_size, binomial_median, contrast_strength);
+        svg = generateRandomPattern(svg, viebox_width, viebox_height, polygon_num, bit_size, large_side_cm, small_side_cm, contrast_strength);
 
 	let float_h_max = (max_cols > 0 && selectedLayout().match(/float/)) ? max_cols : Math.floor(viebox_width / (width + 4));
 	let float_v_max = (max_rows > 0 && selectedLayout().match(/float/)) ? max_rows : Math.floor(viebox_height / (height + 4));
@@ -379,7 +378,8 @@ function init() {
         var fieldHeightInput = document.querySelector('.field input[name=height]');
         var markerNumInput = document.querySelector('.field input[name=num]');
         var polygonNumInput = document.querySelector('.field input[name=polygons]');
-        var binomialMedianInput = document.querySelector('.field input[name=binomial-median]');
+        var largeTriangleInput = document.querySelector('.field input[name=large-triangle-cm]');
+        var smallTriangleInput = document.querySelector('.field input[name=small-triangle-cm]');
         var contrastInput = document.querySelector('.field input[name=contrast]');
         var markerLayout = document.getElementsByName('marker-layout');
         var maxRowsInput = document.querySelector('.field input[name=max-rows');
@@ -407,8 +407,11 @@ function init() {
         if (params.has('polygons')) {
                 polygonNumInput.value = params.get('polygons');
         }
-        if (params.has('binomial-median')) {
-                binomialMedianInput.value = params.get('binomial-median');
+        if (params.has('large-triangle-cm')) {
+                largeTriangleInput.value = params.get('large-triangle-cm');
+        }
+        if (params.has('small-triangle-cm')) {
+                smallTriangleInput.value = params.get('small-triangle-cm');
         }
         if (params.has('contrast')) {
                 contrastInput.value = params.get('contrast');
@@ -443,7 +446,8 @@ function init() {
                 var markerNum = Number(markerNumInput.value);
                 var bitSize = markerSize / (markerWidth + 2);
                 var polygonNum = Number(polygonNumInput.value);
-                var binomialMedian = Number(binomialMedianInput.value);
+                var largeTriangleCm = Number(largeTriangleInput.value);
+                var smallTriangleCm = Number(smallTriangleInput.value);
                 var contrastStrength = Number(contrastInput.value);
                 var maxRows = Number(maxRowsInput.value);
                 var maxCols = Number(maxColsInput.value);
@@ -455,10 +459,10 @@ function init() {
 			markerId = maxId;
 		}
 
-		// Wait until dict data is loaded
-		loadDict.then(function() {
+                // Wait until dict data is loaded
+                loadDict.then(function() {
                         // Generate marker
-                        var svg = generateTriOrbMarker(markerWidth, markerHeight, dictName, markerId, markerNum, bitSize, fieldWidth, fieldHeight, polygonNum, maxRows, maxCols, binomialMedian, contrastStrength);
+                        var svg = generateTriOrbMarker(markerWidth, markerHeight, dictName, markerId, markerNum, bitSize, fieldWidth, fieldHeight, polygonNum, maxRows, maxCols, largeTriangleCm, smallTriangleCm, contrastStrength);
 			if (!svg) {
 				return;
 			}
@@ -498,7 +502,8 @@ function init() {
         fieldHeightInput.addEventListener('input', updateMarker);
         markerNumInput.addEventListener('input', updateMarker);
         polygonNumInput.addEventListener('input', updateMarker);
-        binomialMedianInput.addEventListener('input', updateMarker);
+        largeTriangleInput.addEventListener('input', updateMarker);
+        smallTriangleInput.addEventListener('input', updateMarker);
         contrastInput.addEventListener('input', updateMarker);
         markerLayout.forEach(function (radio) {
                 radio.addEventListener('change', function (radio) {
