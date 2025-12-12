@@ -1,0 +1,14 @@
+/* Hide the default left sidebar navigation */
+.wy-nav-side {
+  display: none;
+}
+
+/* Remove reserved space for the hidden sidebar */
+.wy-nav-content-wrap {
+  margin-left: 0;
+}
+
+/* Allow the main content to use the full available width */
+.wy-nav-content {
+  max-width: none;
+}
