@@ -1,0 +1,9 @@
+site_name: TriOrb Marker Generator
+site_url: https://triorb-inc.github.io/TriOrb_Marker_Generator/
+docs_dir: docs
+use_directory_urls: false
+
+nav:
+  - Home: index.md
+extra_css:
+  - css/override.css
