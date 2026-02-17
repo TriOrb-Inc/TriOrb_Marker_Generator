@@ -31,7 +31,7 @@ pip install -r requirements.txt
 
 1. Build and publish the site to the `gh-pages` branch with the target version. For the current release this is `1.0` and uses the `latest` alias:
    ```bash
-   mike deploy --update-aliases 2.0 latest -b gh-pages
+   mike deploy --update-aliases 3.0 latest -b gh-pages
    ```
 2. Make sure visitors are directed to the latest version:
    ```bash
