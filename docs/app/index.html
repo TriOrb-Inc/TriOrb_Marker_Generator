@@ -55,11 +55,18 @@
                                         <input id="polygon-num" name="polygons" type="number" min="0" max="10000" value="80" step="10">
                                 </div>
                                 <div class="field">
-                                        <label for="large-triangle-cm">大きい三角形の最大辺長 [cm]</label>
+                                        <label for="shape-type">ランダム図形タイプ</label>
+                                        <select id="shape-type" name="shape-type">
+                                                <option value="triangle" selected>三角形</option>
+                                                <option value="ellipse">楕円</option>
+                                        </select>
+                                </div>
+                                <div class="field">
+                                        <label for="large-triangle-cm">大きい図形の目安サイズ [cm]</label>
                                         <input id="large-triangle-cm" name="large-triangle-cm" type="number" min="0" max="100" value="15" step="0.5">
                                 </div>
                                 <div class="field">
-                                        <label for="small-triangle-cm">小さい三角形の最大辺長 [cm]</label>
+                                        <label for="small-triangle-cm">小さい図形の目安サイズ [cm]</label>
                                         <input id="small-triangle-cm" name="small-triangle-cm" type="number" min="0" max="100" value="4" step="0.5">
                                 </div>
                                 <div class="field">
