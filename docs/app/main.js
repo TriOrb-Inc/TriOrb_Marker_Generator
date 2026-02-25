@@ -214,10 +214,13 @@ function selectedLayout() {
 	return "layout-tile";
 }
 
-function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_width, field_height, polygon_num, large_side_cm, small_side_cm, contrast_strength, shape_type) {
+function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_width, field_height, polygon_num, large_side_cm, small_side_cm, contrast_strength, shape_type, marker_margin_mm) {
         console.log('Generate ArUco marker ' + dictName + ' ' + id + ' - ' + (id + num - 1) + ' with size ' + width + 'x' + height + ' mm' + ' and layout ' + selectedLayout());
         var viebox_width = (field_width / bit_size);
         var viebox_height = (field_height / bit_size);
+        var markerMargin = Math.max(0, marker_margin_mm / bit_size);
+        var markerStepX = width + 4 + markerMargin;
+        var markerStepY = height + 4 + markerMargin;
         var bitsCount = width * height;
 
 	var svg = document.createElement('svg');
@@ -230,8 +233,8 @@ function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_
         // Generate Random pattern
         svg = generateRandomPattern(svg, viebox_width, viebox_height, polygon_num, bit_size, large_side_cm, small_side_cm, contrast_strength, shape_type);
 
-        let horizontalCapacity = Math.floor(viebox_width / (width + 4));
-        let verticalCapacity = Math.floor(viebox_height / (height + 4));
+        let horizontalCapacity = Math.floor((viebox_width + markerMargin) / markerStepX);
+        let verticalCapacity = Math.floor((viebox_height + markerMargin) / markerStepY);
 
 	// Generate markers
 	for (let id_offset = 0; id_offset < num; id_offset++) {
@@ -296,7 +299,7 @@ function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_
                                         silentAlert('[ERROR] Number of markers exceeds the limit of ' + horizontalCapacity);
                                         return;
                                 }
-                                offset_x = id_offset * (width + 4);
+                                offset_x = id_offset * markerStepX;
                                 offset_y = 0;
                                 break;
                         case "layout-v-stack":
@@ -305,7 +308,7 @@ function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_
                                         return;
                                 }
                                 offset_x = 0;
-                                offset_y = id_offset * (height + 4);
+                                offset_y = id_offset * markerStepY;
                                 break;
                         default:
                                 alert('Invalid layout' + selectedLayout());
@@ -367,6 +370,7 @@ function init() {
         var smallTriangleInput = document.querySelector('.field input[name=small-triangle-cm]');
         var contrastInput = document.querySelector('.field input[name=contrast]');
         var shapeTypeInput = document.querySelector('.field select[name=shape-type]');
+        var markerMarginInput = document.querySelector('.field input[name=marker-margin]');
         var markerLayout = document.getElementsByName('marker-layout');
 
 	const params = new URLSearchParams(location.search);
@@ -403,6 +407,9 @@ function init() {
         if (params.has('shape-type')) {
                 shapeTypeInput.value = params.get('shape-type');
         }
+        if (params.has('marker-margin')) {
+                markerMarginInput.value = params.get('marker-margin');
+        }
         if (params.has('marker-layout')) {
                 document.getElementById('layout-' + params.get('marker-layout')).checked = true;
         }
@@ -424,6 +431,7 @@ function init() {
                 var smallTriangleCm = Number(smallTriangleInput.value);
                 var contrastStrength = Number(contrastInput.value);
                 var shapeType = shapeTypeInput.value;
+                var markerMargin = Number(markerMarginInput.value);
 
 		markerIdInput.setAttribute('max', maxId);
 
@@ -435,7 +443,7 @@ function init() {
                 // Wait until dict data is loaded
                 loadDict.then(function() {
                         // Generate marker
-                        var svg = generateTriOrbMarker(markerWidth, markerHeight, dictName, markerId, markerNum, bitSize, fieldWidth, fieldHeight, polygonNum, largeTriangleCm, smallTriangleCm, contrastStrength, shapeType);
+                        var svg = generateTriOrbMarker(markerWidth, markerHeight, dictName, markerId, markerNum, bitSize, fieldWidth, fieldHeight, polygonNum, largeTriangleCm, smallTriangleCm, contrastStrength, shapeType, markerMargin);
 			if (!svg) {
 				return;
 			}
@@ -479,6 +487,7 @@ function init() {
         smallTriangleInput.addEventListener('input', updateMarker);
         contrastInput.addEventListener('input', updateMarker);
         shapeTypeInput.addEventListener('change', updateMarker);
+        markerMarginInput.addEventListener('input', updateMarker);
         markerLayout.forEach(function (radio) {
                 radio.addEventListener('change', function (radio) {
                         updateMarker();
