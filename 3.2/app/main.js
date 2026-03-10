@@ -243,6 +243,7 @@ function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_
 
         let horizontalCapacity = Math.floor((viebox_width + markerMargin) / markerStepX);
         let verticalCapacity = Math.floor((viebox_height + markerMargin) / markerStepY);
+        let gridCapacity = horizontalCapacity * verticalCapacity;
 
 	// Generate markers
 	for (let id_offset = 0; id_offset < num; id_offset++) {
@@ -303,20 +304,28 @@ function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_
 				}
 				break;
                         case "layout-h-stack":
-                                if (id_offset >= horizontalCapacity) {
-                                        silentAlert('[ERROR] Number of markers exceeds the limit of ' + horizontalCapacity);
+                                if (horizontalCapacity < 1 || verticalCapacity < 1) {
+                                        silentAlert('[ERROR] Field is too small for the current marker settings');
                                         return;
                                 }
-                                offset_x = id_offset * markerStepX;
-                                offset_y = 0;
+                                if (id_offset >= gridCapacity) {
+                                        silentAlert('[ERROR] Number of markers exceeds the limit of ' + gridCapacity);
+                                        return;
+                                }
+                                offset_x = (id_offset % horizontalCapacity) * markerStepX;
+                                offset_y = Math.floor(id_offset / horizontalCapacity) * markerStepY;
                                 break;
                         case "layout-v-stack":
-                                if (id_offset >= verticalCapacity) {
-                                        silentAlert('[ERROR] Number of markers exceeds the limit of ' + verticalCapacity);
+                                if (horizontalCapacity < 1 || verticalCapacity < 1) {
+                                        silentAlert('[ERROR] Field is too small for the current marker settings');
                                         return;
                                 }
-                                offset_x = 0;
-                                offset_y = id_offset * markerStepY;
+                                if (id_offset >= gridCapacity) {
+                                        silentAlert('[ERROR] Number of markers exceeds the limit of ' + gridCapacity);
+                                        return;
+                                }
+                                offset_x = Math.floor(id_offset / verticalCapacity) * markerStepX;
+                                offset_y = (id_offset % verticalCapacity) * markerStepY;
                                 break;
                         default:
                                 alert('Invalid layout' + selectedLayout());
