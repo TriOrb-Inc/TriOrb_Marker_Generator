@@ -379,7 +379,7 @@ function init() {
         var contrastInput = document.querySelector('.field input[name=contrast]');
         var shapeTypeInput = document.querySelector('.field select[name=shape-type]');
         var markerMarginInput = document.querySelector('.field input[name=marker-margin]');
-        var markerQuietZoneInput = document.querySelector('.field select[name=marker-quiet-zone]');
+        var markerQuietZoneInput = document.querySelector('.field input[name=marker-quiet-zone]');
         var markerLayout = document.getElementsByName('marker-layout');
 
 	const params = new URLSearchParams(location.search);
@@ -501,7 +501,7 @@ function init() {
         contrastInput.addEventListener('input', updateMarker);
         shapeTypeInput.addEventListener('change', updateMarker);
         markerMarginInput.addEventListener('input', updateMarker);
-        markerQuietZoneInput.addEventListener('change', updateMarker);
+        markerQuietZoneInput.addEventListener('input', updateMarker);
         markerLayout.forEach(function (radio) {
                 radio.addEventListener('change', function (radio) {
                         updateMarker();
