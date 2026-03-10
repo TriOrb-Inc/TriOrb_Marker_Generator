@@ -34,22 +34,27 @@ function silentAlert(msg) {
 		, 5000);
 }
 
-function generateMarkerSvg(svg, width, height, bits, offset_x = 0, offset_y = 0, draw_border = true) {
+function generateMarkerSvg(svg, width, height, bits, offset_x = 0, offset_y = 0, quiet_zone = 1, draw_border = true) {
+	var outerWidth = width + 2 + quiet_zone * 2;
+	var outerHeight = height + 2 + quiet_zone * 2;
+	var markerOffsetX = offset_x + quiet_zone;
+	var markerOffsetY = offset_y + quiet_zone;
+
 	// Border
 	if (draw_border) {
 		var pixel = document.createElement('rect');
-		pixel.setAttribute('x', offset_x - 1);
-		pixel.setAttribute('y', offset_y - 1);
-		pixel.setAttribute('width', width + 4);
-		pixel.setAttribute('height', height + 4);
+		pixel.setAttribute('x', offset_x);
+		pixel.setAttribute('y', offset_y);
+		pixel.setAttribute('width', outerWidth);
+		pixel.setAttribute('height', outerHeight);
 		pixel.setAttribute('fill', 'white');
 		svg.appendChild(pixel);
 	}
 
 	// Background rect
 	var rect = document.createElement('rect');
-	rect.setAttribute('x', offset_x);
-	rect.setAttribute('y', offset_y);
+	rect.setAttribute('x', markerOffsetX);
+	rect.setAttribute('y', markerOffsetY);
 	rect.setAttribute('width', width + 2);
 	rect.setAttribute('height', height + 2);
 	rect.setAttribute('fill', 'black');
@@ -64,8 +69,8 @@ function generateMarkerSvg(svg, width, height, bits, offset_x = 0, offset_y = 0,
 			var pixel = document.createElement('rect');;
 			pixel.setAttribute('width', 1);
 			pixel.setAttribute('height', 1);
-			pixel.setAttribute('x', offset_x + j + 1);
-			pixel.setAttribute('y', offset_y + i + 1);
+			pixel.setAttribute('x', markerOffsetX + j + 1);
+			pixel.setAttribute('y', markerOffsetY + i + 1);
 			pixel.setAttribute('fill', 'white');
 			svg.appendChild(pixel);
 
@@ -79,8 +84,8 @@ function generateMarkerSvg(svg, width, height, bits, offset_x = 0, offset_y = 0,
 				var pixel2 = document.createElement('rect');;
 				pixel2.setAttribute('width', 1);
 				pixel2.setAttribute('height', 1.5);
-				pixel2.setAttribute('x', offset_x + j + 1);
-				pixel2.setAttribute('y', offset_y + i + 1);
+				pixel2.setAttribute('x', markerOffsetX + j + 1);
+				pixel2.setAttribute('y', markerOffsetY + i + 1);
 				pixel2.setAttribute('fill', 'white');
 				svg.appendChild(pixel2);
 			}
@@ -89,10 +94,10 @@ function generateMarkerSvg(svg, width, height, bits, offset_x = 0, offset_y = 0,
 
 	// 枠線
 	var border = document.createElement('rect');
-	border.setAttribute('x', offset_x - 1);
-	border.setAttribute('y', offset_y - 1);
-	border.setAttribute('width', width + 4);
-	border.setAttribute('height', height + 4);
+	border.setAttribute('x', offset_x);
+	border.setAttribute('y', offset_y);
+	border.setAttribute('width', outerWidth);
+	border.setAttribute('height', outerHeight);
 	border.setAttribute('fill', 'none');
 	border.setAttribute('stroke', 'rgb(200,200,200)');
 	border.setAttribute('stroke-width', 0.05);
@@ -214,10 +219,16 @@ function selectedLayout() {
 	return "layout-tile";
 }
 
-function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_width, field_height, polygon_num, large_side_cm, small_side_cm, contrast_strength, shape_type) {
+function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_width, field_height, polygon_num, large_side_cm, small_side_cm, contrast_strength, shape_type, marker_margin_mm, marker_quiet_zone) {
         console.log('Generate ArUco marker ' + dictName + ' ' + id + ' - ' + (id + num - 1) + ' with size ' + width + 'x' + height + ' mm' + ' and layout ' + selectedLayout());
         var viebox_width = (field_width / bit_size);
         var viebox_height = (field_height / bit_size);
+        var markerMargin = Math.max(0, marker_margin_mm / bit_size);
+        var quietZone = Math.max(0, marker_quiet_zone);
+        var markerOuterWidth = width + 2 + quietZone * 2;
+        var markerOuterHeight = height + 2 + quietZone * 2;
+        var markerStepX = markerOuterWidth + markerMargin;
+        var markerStepY = markerOuterHeight + markerMargin;
         var bitsCount = width * height;
 
 	var svg = document.createElement('svg');
@@ -230,8 +241,9 @@ function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_
         // Generate Random pattern
         svg = generateRandomPattern(svg, viebox_width, viebox_height, polygon_num, bit_size, large_side_cm, small_side_cm, contrast_strength, shape_type);
 
-        let horizontalCapacity = Math.floor(viebox_width / (width + 4));
-        let verticalCapacity = Math.floor(viebox_height / (height + 4));
+        let horizontalCapacity = Math.floor((viebox_width + markerMargin) / markerStepX);
+        let verticalCapacity = Math.floor((viebox_height + markerMargin) / markerStepY);
+        let gridCapacity = horizontalCapacity * verticalCapacity;
 
 	// Generate markers
 	for (let id_offset = 0; id_offset < num; id_offset++) {
@@ -255,36 +267,36 @@ function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_
 						offset_y = 0;
 						break;
 					case 1:
-						offset_x = viebox_width - width - 4;
-						offset_y = viebox_height - height - 4;
+						offset_x = viebox_width - markerOuterWidth;
+						offset_y = viebox_height - markerOuterHeight;
 						break;
 					case 2:
 						offset_x = 0;
-						offset_y = viebox_height - height - 4;
+						offset_y = viebox_height - markerOuterHeight;
 						break;
 					case 3:
-						offset_x = viebox_width - width - 4;
+						offset_x = viebox_width - markerOuterWidth;
 						offset_y = 0;
 						break;
 					case 4:
-						offset_x = (viebox_width - width - 4) / 2;
-						offset_y = (viebox_height - height - 4) / 2;
+						offset_x = (viebox_width - markerOuterWidth) / 2;
+						offset_y = (viebox_height - markerOuterHeight) / 2;
 						break;
 					case 5:
 						offset_x = 0;
-						offset_y = (viebox_height - height - 4) / 2;
+						offset_y = (viebox_height - markerOuterHeight) / 2;
 						break;
 					case 6:
-						offset_x = viebox_width - width - 4;
-						offset_y = (viebox_height - height - 4) / 2;
+						offset_x = viebox_width - markerOuterWidth;
+						offset_y = (viebox_height - markerOuterHeight) / 2;
 						break;
 					case 7:
-						offset_x = (viebox_width - width - 4) / 2;
+						offset_x = (viebox_width - markerOuterWidth) / 2;
 						offset_y = 0;
 						break;
 					case 8:
-						offset_x = (viebox_width - width - 4) / 2;
-						offset_y = viebox_height - height - 4;
+						offset_x = (viebox_width - markerOuterWidth) / 2;
+						offset_y = viebox_height - markerOuterHeight;
 						break;
 					default:
 						alert('Invalid offset');
@@ -292,35 +304,43 @@ function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_
 				}
 				break;
                         case "layout-h-stack":
-                                if (id_offset >= horizontalCapacity) {
-                                        silentAlert('[ERROR] Number of markers exceeds the limit of ' + horizontalCapacity);
+                                if (horizontalCapacity < 1 || verticalCapacity < 1) {
+                                        silentAlert('[ERROR] Field is too small for the current marker settings');
                                         return;
                                 }
-                                offset_x = id_offset * (width + 4);
-                                offset_y = 0;
+                                if (id_offset >= gridCapacity) {
+                                        silentAlert('[ERROR] Number of markers exceeds the limit of ' + gridCapacity);
+                                        return;
+                                }
+                                offset_x = (id_offset % horizontalCapacity) * markerStepX;
+                                offset_y = Math.floor(id_offset / horizontalCapacity) * markerStepY;
                                 break;
                         case "layout-v-stack":
-                                if (id_offset >= verticalCapacity) {
-                                        silentAlert('[ERROR] Number of markers exceeds the limit of ' + verticalCapacity);
+                                if (horizontalCapacity < 1 || verticalCapacity < 1) {
+                                        silentAlert('[ERROR] Field is too small for the current marker settings');
                                         return;
                                 }
-                                offset_x = 0;
-                                offset_y = id_offset * (height + 4);
+                                if (id_offset >= gridCapacity) {
+                                        silentAlert('[ERROR] Number of markers exceeds the limit of ' + gridCapacity);
+                                        return;
+                                }
+                                offset_x = Math.floor(id_offset / verticalCapacity) * markerStepX;
+                                offset_y = (id_offset % verticalCapacity) * markerStepY;
                                 break;
                         default:
                                 alert('Invalid layout' + selectedLayout());
                                 return;
 		}
 
-		svg = generateMarkerSvg(svg, width, height, bits, offset_x + 1, offset_y + 1);
+		svg = generateMarkerSvg(svg, width, height, bits, offset_x, offset_y, quietZone);
 		// Draw ID
 		var text = document.createElement('text');
 		text.setAttribute('x', offset_x + 1);
-		text.setAttribute('y', offset_y + height + 3.9);
+		text.setAttribute('y', offset_y + markerOuterHeight - 0.1);
 		text.setAttribute('fill', 'rgb(192,255,192)');
 		text.setAttribute('font-size', 0.8);
 		text.setAttribute('font-family', 'Arial');
-		text.textContent = id + id_offset;
+		text.textContent = dictName + ' : ' + (id + id_offset);
 		svg.appendChild(text);
 	}
 	return svg
@@ -367,6 +387,8 @@ function init() {
         var smallTriangleInput = document.querySelector('.field input[name=small-triangle-cm]');
         var contrastInput = document.querySelector('.field input[name=contrast]');
         var shapeTypeInput = document.querySelector('.field select[name=shape-type]');
+        var markerMarginInput = document.querySelector('.field input[name=marker-margin]');
+        var markerQuietZoneInput = document.querySelector('.field input[name=marker-quiet-zone]');
         var markerLayout = document.getElementsByName('marker-layout');
 
 	const params = new URLSearchParams(location.search);
@@ -403,6 +425,12 @@ function init() {
         if (params.has('shape-type')) {
                 shapeTypeInput.value = params.get('shape-type');
         }
+        if (params.has('marker-margin')) {
+                markerMarginInput.value = params.get('marker-margin');
+        }
+        if (params.has('marker-quiet-zone')) {
+                markerQuietZoneInput.value = params.get('marker-quiet-zone');
+        }
         if (params.has('marker-layout')) {
                 document.getElementById('layout-' + params.get('marker-layout')).checked = true;
         }
@@ -424,6 +452,8 @@ function init() {
                 var smallTriangleCm = Number(smallTriangleInput.value);
                 var contrastStrength = Number(contrastInput.value);
                 var shapeType = shapeTypeInput.value;
+                var markerMargin = Number(markerMarginInput.value);
+                var markerQuietZone = Number(markerQuietZoneInput.value);
 
 		markerIdInput.setAttribute('max', maxId);
 
@@ -435,7 +465,7 @@ function init() {
                 // Wait until dict data is loaded
                 loadDict.then(function() {
                         // Generate marker
-                        var svg = generateTriOrbMarker(markerWidth, markerHeight, dictName, markerId, markerNum, bitSize, fieldWidth, fieldHeight, polygonNum, largeTriangleCm, smallTriangleCm, contrastStrength, shapeType);
+                        var svg = generateTriOrbMarker(markerWidth, markerHeight, dictName, markerId, markerNum, bitSize, fieldWidth, fieldHeight, polygonNum, largeTriangleCm, smallTriangleCm, contrastStrength, shapeType, markerMargin, markerQuietZone);
 			if (!svg) {
 				return;
 			}
@@ -479,6 +509,8 @@ function init() {
         smallTriangleInput.addEventListener('input', updateMarker);
         contrastInput.addEventListener('input', updateMarker);
         shapeTypeInput.addEventListener('change', updateMarker);
+        markerMarginInput.addEventListener('input', updateMarker);
+        markerQuietZoneInput.addEventListener('input', updateMarker);
         markerLayout.forEach(function (radio) {
                 radio.addEventListener('change', function (radio) {
                         updateMarker();
