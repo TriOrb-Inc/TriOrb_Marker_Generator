@@ -300,6 +300,11 @@ button:active {
 	flex-wrap: wrap;
 	margin-top: 0.5rem;
 	justify-content: center;
+        gap: 16px;
+}
+
+.mydict label {
+        display: inline-flex;
 }
 
 .mydict input[type="radio"] {
@@ -324,15 +329,18 @@ label img {
 	display: block;
 	cursor: pointer;
 	background-color: #ffffff00;
-	padding: 0.375em 1.62em;
+	padding: 8px;
 	position: relative;
-	margin-left: 0.0625em;
 	box-shadow: 0 0 0 0.0625em #4a5568;
 	letter-spacing: 0.05em;
 	color: #a0aec0;
 	text-align: center;
 	transition: background-color 0.5s ease;
 	opacity: 0.3;
+        width: 104px;
+        height: auto;
+        aspect-ratio: 1 / 1;
+        object-fit: contain;
 }
 
 label:first-child img {
