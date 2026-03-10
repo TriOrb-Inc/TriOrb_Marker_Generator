@@ -68,13 +68,39 @@ ul {
         width: 60%;
 }
 
+.config-layout {
+        display: grid;
+        gap: 18px;
+        margin-bottom: 20px;
+}
+
+.config-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+}
+
+.config-group {
+        border: 1px solid #d9dee8;
+        border-radius: 12px;
+        padding: 16px 18px;
+        background: #fbfcfe;
+}
+
+.config-group h2 {
+        margin: 0 0 14px;
+        font-size: 16px;
+        font-weight: 600;
+        color: #33415c;
+        text-align: left;
+}
+
 .field-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        grid-template-columns: 1fr;
         gap: 12px 18px;
         justify-items: stretch;
         align-items: center;
-        margin-bottom: 20px;
 }
 
 .field-grid .field {
@@ -85,7 +111,7 @@ ul {
 }
 
 .field-grid .field label {
-        text-align: right;
+        text-align: left;
 }
 
 .setup .field {
@@ -115,8 +141,8 @@ ul {
                 text-align: left;
         }
 
-        .field-grid {
-                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        .config-row {
+                grid-template-columns: 1fr;
         }
 }
 
