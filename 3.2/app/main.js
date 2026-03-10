@@ -353,6 +353,45 @@ var loadDict = fetch('dict.json').then(function(res) {
 	dict = json;
 });
 
+var formStateStorageKey = 'triorb-marker-generator-form-state';
+
+function loadSavedFormState() {
+        try {
+                var raw = localStorage.getItem(formStateStorageKey);
+                return raw ? JSON.parse(raw) : {};
+        } catch (error) {
+                console.warn('Failed to load saved form state', error);
+                return {};
+        }
+}
+
+function applyFormState(setupForm, formState) {
+        Object.keys(formState).forEach(function(name) {
+                var field = setupForm.elements.namedItem(name);
+                if (!field) {
+                        return;
+                }
+
+                if (field instanceof RadioNodeList) {
+                        for (var option of field) {
+                                option.checked = option.value === formState[name];
+                        }
+                        return;
+                }
+
+                field.value = formState[name];
+        });
+}
+
+function saveFormState(setupForm) {
+        try {
+                var formState = Object.fromEntries(new FormData(setupForm).entries());
+                localStorage.setItem(formStateStorageKey, JSON.stringify(formState));
+        } catch (error) {
+                console.warn('Failed to save form state', error);
+        }
+}
+
 //[ref] https://qiita.com/akinov/items/26a7fc36d7c0045dd2db
 function getUrlQueries() {
 	var queryStr = window.location.search.slice(1);  // 文頭?を除外
@@ -390,6 +429,8 @@ function init() {
         var markerMarginInput = document.querySelector('.field input[name=marker-margin]');
         var markerQuietZoneInput = document.querySelector('.field input[name=marker-quiet-zone]');
         var markerLayout = document.getElementsByName('marker-layout');
+
+        applyFormState(setupForm, loadSavedFormState());
 
 	const params = new URLSearchParams(location.search);
 	if (params.has('dict')) {
@@ -462,6 +503,8 @@ function init() {
 			markerId = maxId;
 		}
 
+                saveFormState(setupForm);
+
                 // Wait until dict data is loaded
                 loadDict.then(function() {
                         // Generate marker
@@ -519,6 +562,7 @@ function init() {
 
         setupForm.addEventListener('submit', function (event) {
                 event.preventDefault();
+                saveFormState(setupForm);
                 var params = new URLSearchParams(new FormData(setupForm));
                 var target = (window.top && window.top.location) ? window.top.location : window.location;
                 var newUrl = target.origin + target.pathname + '?' + params.toString() + target.hash;
