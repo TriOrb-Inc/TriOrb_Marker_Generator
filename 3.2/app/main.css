@@ -20,6 +20,13 @@ body {
 	font-family: sans-serif;
 	padding: 0;
 	margin: 0;
+        box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+        box-sizing: inherit;
 }
 
 h1 {
@@ -52,7 +59,8 @@ ul {
 	margin: 0;
 	font-size: 15px;
 	padding: 2px;
-	width: 130px;
+	width: 100%;
+        max-width: 220px;
 	vertical-align: -1px;
 }
 
@@ -60,17 +68,19 @@ ul {
         font-weight: 300;
         margin: 0;
         font-size: 17px;
+        width: 100%;
+        max-width: 220px;
         vertical-align: -1px;
 }
 
 .setup {
         margin: 20px auto;
-        width: 60%;
+        width: min(1200px, calc(100% - 32px));
 }
 
 .config-layout {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 18px;
         margin-bottom: 20px;
 }
@@ -99,18 +109,20 @@ ul {
 }
 
 .field-grid-common {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: 1fr;
 }
 
 .field-grid .field {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
         justify-content: space-between;
+        min-width: 0;
 }
 
 .field-grid .field label {
         text-align: left;
+        overflow-wrap: anywhere;
 }
 
 .setup .field {
@@ -120,32 +132,44 @@ ul {
 .setup label {
         vertical-align: middle;
         font-size: 15px;
-        width: 180px;
-        text-align: center;
+        width: 150px;
+        min-width: 0;
+        text-align: left;
         display: inline-block;
         color: #858585;
 }
 
 @media (max-width: 900px) {
         .setup {
-                width: 90%;
+                width: min(100%, calc(100% - 24px));
         }
 
         .setup input {
-                width: 120px;
+                max-width: 180px;
         }
 
-        .setup label {
-                width: 150px;
-                text-align: left;
+        .setup select {
+                max-width: 180px;
         }
+}
 
+@media (max-width: 640px) {
         .config-layout {
                 grid-template-columns: 1fr;
         }
 
-        .field-grid-common {
-                grid-template-columns: 1fr;
+        .field-grid .field {
+                flex-direction: column;
+                align-items: stretch;
+        }
+
+        .setup label {
+                width: auto;
+        }
+
+        .setup input,
+        .setup select {
+                max-width: 100%;
         }
 }
 
