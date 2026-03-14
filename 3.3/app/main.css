@@ -1,0 +1,352 @@
+/**
+ * Copyright 2023 TriOrb Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * 
+ * Based on original work Copyright (c) 2018 Oleg Kalachev
+ * 
+ */
+body {
+	font-family: sans-serif;
+	padding: 0;
+	margin: 0;
+        box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+        box-sizing: inherit;
+}
+
+h1 {
+	font-weight: normal;
+	text-align: center;
+	font-size: 22px;
+	margin: 20px;
+	margin-bottom: 40px;
+}
+
+a {
+	color: #4761c7;
+	text-decoration: none;
+}
+
+ul {
+        display: -webkit-flex;
+        display: flex;
+        -webkit-justify-content: center;
+        justify-content: center;
+        -webkit-align-items: center;
+        align-items: center;
+}
+.setup {
+        margin: 0 10px;
+}
+
+.setup input {
+	font-weight: 300;
+	margin: 0;
+	font-size: 15px;
+	padding: 2px;
+	width: 100%;
+        max-width: 220px;
+	vertical-align: -1px;
+}
+
+.setup select {
+        font-weight: 300;
+        margin: 0;
+        font-size: 17px;
+        width: 100%;
+        max-width: 220px;
+        vertical-align: -1px;
+}
+
+.setup {
+        margin: 20px auto;
+        width: min(1200px, calc(100% - 32px));
+}
+
+.config-layout {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 18px;
+        margin-bottom: 20px;
+}
+
+.config-group {
+        border: 1px solid #d9dee8;
+        border-radius: 12px;
+        padding: 16px 18px;
+        background: #fbfcfe;
+}
+
+.config-group h2 {
+        margin: 0 0 14px;
+        font-size: 16px;
+        font-weight: 600;
+        color: #33415c;
+        text-align: left;
+}
+
+.field-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px 18px;
+        justify-items: stretch;
+        align-items: center;
+}
+
+.field-grid-common {
+        grid-template-columns: 1fr;
+}
+
+.field-grid .field {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        justify-content: space-between;
+        min-width: 0;
+}
+
+.field-grid .field label {
+        text-align: left;
+        overflow-wrap: anywhere;
+}
+
+.setup .field {
+        margin: 5px 0;
+}
+
+.setup label {
+        vertical-align: middle;
+        font-size: 15px;
+        width: 150px;
+        min-width: 0;
+        text-align: left;
+        display: inline-block;
+        color: #858585;
+}
+
+@media (max-width: 900px) {
+        .setup {
+                width: min(100%, calc(100% - 24px));
+        }
+
+        .setup input {
+                max-width: 180px;
+        }
+
+        .setup select {
+                max-width: 180px;
+        }
+}
+
+@media (max-width: 640px) {
+        .config-layout {
+                grid-template-columns: 1fr;
+        }
+
+        .field-grid .field {
+                flex-direction: column;
+                align-items: stretch;
+        }
+
+        .setup label {
+                width: auto;
+        }
+
+        .setup input,
+        .setup select {
+                max-width: 100%;
+        }
+}
+
+.tools {
+	margin: 20px;
+	text-align: center;
+	line-height: 20px;
+}
+
+.tools a {
+	font-weight: bold;
+}
+
+.marker-id {
+	display: none;
+}
+
+.marker {
+	text-align: center;
+	background: white;
+	margin: 40px;
+}
+
+.marker table {
+	border: none;
+	border-collapse: collapse;
+	margin: 0;
+	padding: 0;
+	width: 100mm;
+	height: 100mm;
+}
+
+.marker table td {
+	margin: 0;
+	padding: 0;
+	border: none;
+	background: white;
+}
+
+footer {
+	font-weight: normal;
+	margin: 20px;
+	margin-top: 60px;
+	text-align: right;
+	font-size: 13px;
+	color: #919191;
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+}
+
+@media print {
+        @page {
+                margin: 0mm;
+        }
+
+        body {
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+                background: white;
+                margin: 0;
+                padding: 0;
+        }
+
+        body > * {
+                display: none;
+        }
+
+        .marker-id {
+                display: block !important;
+                text-align: center;
+        }
+
+        .marker {
+                border: none !important;
+                display: block;
+                margin: 0 !important;
+                page-break-inside: avoid;
+        }
+
+        .marker svg {
+                width: 100%;
+                height: 100%;
+                display: block;
+        }
+}
+
+/* From Uiverse.io by adamgiebl */
+button {
+	display: flex;
+	margin: auto;
+	font-size: 18px;
+	margin: 15px;
+	padding: 10px;
+	text-align: center;
+	height: 40px;
+	letter-spacing: 1px;
+	text-decoration: none;
+	color: #725AC1;
+	background: transparent;
+	cursor: pointer;
+	/*transition: ease-out 0.1s;*/
+	border: 2px solid #725AC1;
+	border-radius: 10px;
+	box-shadow: inset 0 0 0 0 #725AC1;
+}
+
+
+button:hover {
+	color: white;
+	box-shadow: inset 0 -100px 0 0 #725AC1;
+	transition: ease-out 0.5s;
+}
+
+button:active {
+	transform: scale(0.9);
+	transition: ease-out 0.5s;
+}
+/* From Uiverse.io by mahiatlinux */
+.mydict:focus {
+	outline: 0;
+	border-color: #4d82ff;
+	box-shadow: 0 0 0 4px #2a4a8f;
+}
+
+.mydict div {
+	display: flex;
+	flex-wrap: wrap;
+	margin-top: 0.5rem;
+	justify-content: center;
+        gap: 16px;
+}
+
+.mydict label {
+        display: inline-flex;
+}
+
+.mydict input[type="radio"] {
+	clip: rect(0 0 0 0);
+	clip-path: inset(100%);
+	height: 1px;
+	overflow: hidden;
+	position: absolute;
+	white-space: nowrap;
+	width: 1px;
+}
+
+.mydict input[type="radio"]:checked+img {
+	box-shadow: 0 0 0 0.0625em #4d82ff;
+	background-color: #ffffff00;
+	z-index: 1;
+	color: #4d82ff;
+	opacity: 1;
+}
+
+label img {
+	display: block;
+	cursor: pointer;
+	background-color: #ffffff00;
+	padding: 8px;
+	position: relative;
+	box-shadow: 0 0 0 0.0625em #4a5568;
+	letter-spacing: 0.05em;
+	color: #a0aec0;
+	text-align: center;
+	transition: background-color 0.5s ease;
+	opacity: 0.3;
+        width: 104px;
+        height: auto;
+        aspect-ratio: 1 / 1;
+        object-fit: contain;
+}
+
+label:first-child img {
+	border-radius: 0.375em 0 0 0.375em;
+}
+
+label:last-child img {
+	border-radius: 0 0.375em 0.375em 0;
+}
