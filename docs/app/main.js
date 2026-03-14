@@ -107,16 +107,31 @@ function generateMarkerSvg(svg, width, height, bits, offset_x = 0, offset_y = 0,
 }
 
 // 正規分布に従う乱数を生成
-function rnorm() {
-	return Math.sqrt(-2 * Math.log(1 - Math.random())) * Math.cos(2 * Math.PI * Math.random());
+function createRandomSource(seed) {
+        if (!Number.isFinite(seed) || seed === 0) {
+                return Math.random;
+        }
+
+        let state = Math.trunc(seed) >>> 0;
+        return function () {
+                state += 0x6D2B79F5;
+                let t = state;
+                t = Math.imul(t ^ (t >>> 15), t | 1);
+                t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
 }
 
-function generateRandomPattern(svg, width, height, point_num, bit_size, large_side_cm, small_side_cm, contrast_strength, shape_type) {
+function rnorm(randomSource = Math.random) {
+	return Math.sqrt(-2 * Math.log(1 - randomSource())) * Math.cos(2 * Math.PI * randomSource());
+}
+
+function generateRandomPattern(svg, width, height, point_num, bit_size, large_side_cm, small_side_cm, contrast_strength, shape_type, randomSource) {
         // Create random centor points
         let points = [];
         for (var i = 0; i < point_num; i++) {
-                var x = Math.random() * width;
-                var y = Math.random() * height;
+                var x = randomSource() * width;
+                var y = randomSource() * height;
                 points.push([x, y]);
         }
 
@@ -128,7 +143,7 @@ function generateRandomPattern(svg, width, height, point_num, bit_size, large_si
         for (let xy of points) {
                 let cx = xy[0];
                 let cy = xy[1];
-                let is_long = Math.random() < 0.5;
+                let is_long = randomSource() < 0.5;
                 let target_length_mm = (is_long ? long_cm : short_cm) * 10;
                 let target_length_viewbox = target_length_mm / bit_size;
                 let base_r;
@@ -137,13 +152,13 @@ function generateRandomPattern(svg, width, height, point_num, bit_size, large_si
                 } else {
                         base_r = target_length_viewbox / Math.sqrt(3);
                 }
-                let r = Math.abs(base_r * (1 + rnorm() * 0.05));
+                let r = Math.abs(base_r * (1 + rnorm(randomSource) * 0.05));
                 r = Math.min(r, max_radius);
 
                 if (shape_type === 'ellipse') {
-                        let rx = Math.max(0.1, r * (1 + rnorm() * 0.2));
-                        let ry = Math.max(0.1, r * (1 + rnorm() * 0.2));
-                        let rotation = Math.random() * 180;
+                        let rx = Math.max(0.1, r * (1 + rnorm(randomSource) * 0.2));
+                        let ry = Math.max(0.1, r * (1 + rnorm(randomSource) * 0.2));
+                        let rotation = randomSource() * 180;
                         shapes.push({
                                 type: 'ellipse',
                                 cx,
@@ -158,7 +173,7 @@ function generateRandomPattern(svg, width, height, point_num, bit_size, large_si
 
                 let poly = [];
                 for (let ii = 0; ii < 3; ii++) {
-                        let angle = Math.random() * 2 * Math.PI;
+                        let angle = randomSource() * 2 * Math.PI;
                         let x = cx + (r * Math.cos(angle));
                         let y = cy + (r * Math.sin(angle));
                         poly.push([x, y]);
@@ -175,7 +190,7 @@ function generateRandomPattern(svg, width, height, point_num, bit_size, large_si
         for (let shape of shapes) {
                 var elem;
                 let rank = shape.rank;
-                let base_gray = 0.5 + rnorm() * 0.15;
+                let base_gray = 0.5 + rnorm(randomSource) * 0.15;
                 let centered_gray = base_gray - 0.5;
                 let contrast_scaled = Math.tanh(centered_gray * Math.max(contrast_strength, 0) * 2);
                 let fill_gray = Math.min(Math.max(0.5 + contrast_scaled, 0), 1);
@@ -219,8 +234,8 @@ function selectedLayout() {
 	return "layout-tile";
 }
 
-function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_width, field_height, polygon_num, large_side_cm, small_side_cm, contrast_strength, shape_type, marker_margin_mm, marker_quiet_zone) {
-        console.log('Generate ArUco marker ' + dictName + ' ' + id + ' - ' + (id + num - 1) + ' with size ' + width + 'x' + height + ' mm' + ' and layout ' + selectedLayout());
+function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_width, field_height, polygon_num, large_side_cm, small_side_cm, contrast_strength, shape_type, marker_margin_mm, marker_quiet_zone, random_seed) {
+        console.log('Generate ArUco marker ' + dictName + ' ' + id + ' - ' + (id + num - 1) + ' with size ' + width + 'x' + height + ' mm' + ' and layout ' + selectedLayout() + ', random seed: ' + random_seed);
         var viebox_width = (field_width / bit_size);
         var viebox_height = (field_height / bit_size);
         var markerMargin = Math.max(0, marker_margin_mm / bit_size);
@@ -238,8 +253,10 @@ function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_
 	svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
 	svg.setAttribute('shape-rendering', 'crispEdges');
 
+        var randomSource = createRandomSource(random_seed);
+
         // Generate Random pattern
-        svg = generateRandomPattern(svg, viebox_width, viebox_height, polygon_num, bit_size, large_side_cm, small_side_cm, contrast_strength, shape_type);
+        svg = generateRandomPattern(svg, viebox_width, viebox_height, polygon_num, bit_size, large_side_cm, small_side_cm, contrast_strength, shape_type, randomSource);
 
         let horizontalCapacity = Math.floor((viebox_width + markerMargin) / markerStepX);
         let verticalCapacity = Math.floor((viebox_height + markerMargin) / markerStepY);
@@ -426,6 +443,7 @@ function init() {
         var smallTriangleInput = document.querySelector('.field input[name=small-triangle-cm]');
         var contrastInput = document.querySelector('.field input[name=contrast]');
         var shapeTypeInput = document.querySelector('.field select[name=shape-type]');
+        var randomSeedInput = document.querySelector('.field input[name=random-seed]');
         var markerMarginInput = document.querySelector('.field input[name=marker-margin]');
         var markerQuietZoneInput = document.querySelector('.field input[name=marker-quiet-zone]');
         var markerLayout = document.getElementsByName('marker-layout');
@@ -466,6 +484,9 @@ function init() {
         if (params.has('shape-type')) {
                 shapeTypeInput.value = params.get('shape-type');
         }
+        if (params.has('random-seed')) {
+                randomSeedInput.value = params.get('random-seed');
+        }
         if (params.has('marker-margin')) {
                 markerMarginInput.value = params.get('marker-margin');
         }
@@ -493,6 +514,7 @@ function init() {
                 var smallTriangleCm = Number(smallTriangleInput.value);
                 var contrastStrength = Number(contrastInput.value);
                 var shapeType = shapeTypeInput.value;
+                var randomSeed = Number(randomSeedInput.value);
                 var markerMargin = Number(markerMarginInput.value);
                 var markerQuietZone = Number(markerQuietZoneInput.value);
 
@@ -508,7 +530,7 @@ function init() {
                 // Wait until dict data is loaded
                 loadDict.then(function() {
                         // Generate marker
-                        var svg = generateTriOrbMarker(markerWidth, markerHeight, dictName, markerId, markerNum, bitSize, fieldWidth, fieldHeight, polygonNum, largeTriangleCm, smallTriangleCm, contrastStrength, shapeType, markerMargin, markerQuietZone);
+                        var svg = generateTriOrbMarker(markerWidth, markerHeight, dictName, markerId, markerNum, bitSize, fieldWidth, fieldHeight, polygonNum, largeTriangleCm, smallTriangleCm, contrastStrength, shapeType, markerMargin, markerQuietZone, randomSeed);
 			if (!svg) {
 				return;
 			}
@@ -552,6 +574,7 @@ function init() {
         smallTriangleInput.addEventListener('input', updateMarker);
         contrastInput.addEventListener('input', updateMarker);
         shapeTypeInput.addEventListener('change', updateMarker);
+        randomSeedInput.addEventListener('input', updateMarker);
         markerMarginInput.addEventListener('input', updateMarker);
         markerQuietZoneInput.addEventListener('input', updateMarker);
         markerLayout.forEach(function (radio) {
