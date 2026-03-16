@@ -64,6 +64,11 @@ ul {
 	vertical-align: -1px;
 }
 
+.setup input[type="file"] {
+        padding: 0;
+        font-size: 14px;
+}
+
 .setup select {
         font-weight: 300;
         margin: 0;
@@ -98,6 +103,22 @@ ul {
         font-weight: 600;
         color: #33415c;
         text-align: left;
+}
+
+.drop-hint {
+        margin: 0 0 14px;
+        font-size: 13px;
+        color: #6b7280;
+}
+
+.marker-config-group {
+        transition: border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease;
+}
+
+.marker-config-group.is-dragover {
+        border-color: #4761c7;
+        background: #eef3ff;
+        box-shadow: 0 0 0 3px rgba(71, 97, 199, 0.12);
 }
 
 .field-grid {
