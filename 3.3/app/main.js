@@ -115,7 +115,7 @@ function appendMarkerIcon(group, markerIcon, offset_x, offset_y, markerOuterWidt
 
 	var image = createSvgNode('image');
 	image.setAttribute('x', offset_x + (markerOuterWidth - iconWidth) / 2);
-	image.setAttribute('y', offset_y + Math.max((quietZone - iconHeight) / 2, 0));
+	image.setAttribute('y', offset_y);
 	image.setAttribute('width', iconWidth);
 	image.setAttribute('height', iconHeight);
 	image.setAttribute('preserveAspectRatio', 'xMidYMid meet');
