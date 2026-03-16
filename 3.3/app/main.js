@@ -54,6 +54,8 @@ function generateMarkerSvg(outlineGroup, pixelGroup, width, height, bits, offset
 		pixel.setAttribute('width', outerWidth);
 		pixel.setAttribute('height', outerHeight);
 		pixel.setAttribute('fill', 'white');
+		pixel.setAttribute('stroke', 'rgb(200,200,200)');
+		pixel.setAttribute('stroke-width', 0.05);
 		outlineGroup.appendChild(pixel);
 	}
 
@@ -99,16 +101,6 @@ function generateMarkerSvg(outlineGroup, pixelGroup, width, height, bits, offset
 	}
 
 	// 枠線
-	var border = document.createElement('rect');
-	border.setAttribute('x', offset_x);
-	border.setAttribute('y', offset_y);
-	border.setAttribute('width', outerWidth);
-	border.setAttribute('height', outerHeight);
-	border.setAttribute('fill', 'none');
-	border.setAttribute('stroke', 'rgb(200,200,200)');
-	border.setAttribute('stroke-width', 0.05);
-	outlineGroup.appendChild(border);
-
 	return {
 		outlineGroup: outlineGroup,
 		pixelGroup: pixelGroup
