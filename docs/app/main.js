@@ -18,6 +18,11 @@
  */
 
 let timeout = null;
+var svgNamespace = 'http://www.w3.org/2000/svg';
+var xlinkNamespace = 'http://www.w3.org/1999/xlink';
+var labelFontSize = 0.8;
+var uploadedMarkerIcon = null;
+
 function silentAlert(msg) {
 	if (timeout) {
 		clearTimeout(timeout);
@@ -34,7 +39,92 @@ function silentAlert(msg) {
 		, 5000);
 }
 
-function generateMarkerSvg(svg, width, height, bits, offset_x = 0, offset_y = 0, quiet_zone = 1, draw_border = true) {
+function createSvgGroup(id) {
+	var group = document.createElement('g');
+	group.setAttribute('id', id);
+	return group;
+}
+
+function createSvgNode(tagName) {
+	return document.createElementNS(svgNamespace, tagName);
+}
+
+function loadImageDimensions(dataUrl) {
+	return new Promise(function(resolve, reject) {
+		var image = new Image();
+		image.onload = function () {
+			resolve({
+				width: image.naturalWidth,
+				height: image.naturalHeight
+			});
+		};
+		image.onerror = function () {
+			reject(new Error('Failed to load image'));
+		};
+		image.src = dataUrl;
+	});
+}
+
+function readPngFile(file) {
+	return new Promise(function(resolve, reject) {
+		if (!file) {
+			resolve(null);
+			return;
+		}
+
+		if (file.type !== 'image/png') {
+			reject(new Error('Only PNG files are supported'));
+			return;
+		}
+
+		var reader = new FileReader();
+		reader.onload = function () {
+			loadImageDimensions(reader.result).then(function(dimensions) {
+				resolve({
+					name: file.name,
+					dataUrl: reader.result,
+					width: dimensions.width,
+					height: dimensions.height
+				});
+			}).catch(reject);
+		};
+		reader.onerror = function () {
+			reject(new Error('Failed to read PNG file'));
+		};
+		reader.readAsDataURL(file);
+	});
+}
+
+function readFirstPngFile(fileList) {
+	return readPngFile(fileList && fileList[0]);
+}
+
+function appendMarkerIcon(group, markerIcon, offset_x, offset_y, markerOuterWidth, quietZone) {
+	if (!markerIcon || !markerIcon.width || !markerIcon.height) {
+		return;
+	}
+
+	var iconHeight = labelFontSize;
+	var maxIconWidth = Math.max(markerOuterWidth - 0.2, 0);
+	var iconWidth = iconHeight * (markerIcon.width / markerIcon.height);
+	if (iconWidth > maxIconWidth && iconWidth > 0) {
+		var scale = maxIconWidth / iconWidth;
+		iconWidth *= scale;
+		iconHeight *= scale;
+	}
+
+	var image = createSvgNode('image');
+	image.setAttribute('x', offset_x + (markerOuterWidth - iconWidth) / 2);
+	image.setAttribute('y', offset_y + Math.max((quietZone - iconHeight) / 2, 0));
+	image.setAttribute('width', iconWidth);
+	image.setAttribute('height', iconHeight);
+	image.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+	image.setAttribute('href', markerIcon.dataUrl);
+	image.setAttributeNS(xlinkNamespace, 'xlink:href', markerIcon.dataUrl);
+	group.appendChild(image);
+}
+
+function generateMarkerSvg(outlineGroup, pixelGroup, width, height, bits, offset_x = 0, offset_y = 0, quiet_zone = 1, draw_border = true) {
 	var outerWidth = width + 2 + quiet_zone * 2;
 	var outerHeight = height + 2 + quiet_zone * 2;
 	var markerOffsetX = offset_x + quiet_zone;
@@ -48,7 +138,9 @@ function generateMarkerSvg(svg, width, height, bits, offset_x = 0, offset_y = 0,
 		pixel.setAttribute('width', outerWidth);
 		pixel.setAttribute('height', outerHeight);
 		pixel.setAttribute('fill', 'white');
-		svg.appendChild(pixel);
+		pixel.setAttribute('stroke', 'rgb(200,200,200)');
+		pixel.setAttribute('stroke-width', 0.05);
+		outlineGroup.appendChild(pixel);
 	}
 
 	// Background rect
@@ -58,7 +150,7 @@ function generateMarkerSvg(svg, width, height, bits, offset_x = 0, offset_y = 0,
 	rect.setAttribute('width', width + 2);
 	rect.setAttribute('height', height + 2);
 	rect.setAttribute('fill', 'black');
-	svg.appendChild(rect);
+	pixelGroup.appendChild(rect);
 
 	// "Pixels"
 	for (var i = 0; i < height; i++) {
@@ -72,7 +164,7 @@ function generateMarkerSvg(svg, width, height, bits, offset_x = 0, offset_y = 0,
 			pixel.setAttribute('x', markerOffsetX + j + 1);
 			pixel.setAttribute('y', markerOffsetY + i + 1);
 			pixel.setAttribute('fill', 'white');
-			svg.appendChild(pixel);
+			pixelGroup.appendChild(pixel);
 
 			//if (!fixPdfArtifacts) continue;
 
@@ -87,23 +179,16 @@ function generateMarkerSvg(svg, width, height, bits, offset_x = 0, offset_y = 0,
 				pixel2.setAttribute('x', markerOffsetX + j + 1);
 				pixel2.setAttribute('y', markerOffsetY + i + 1);
 				pixel2.setAttribute('fill', 'white');
-				svg.appendChild(pixel2);
+				pixelGroup.appendChild(pixel2);
 			}
 		}
 	}
 
 	// 枠線
-	var border = document.createElement('rect');
-	border.setAttribute('x', offset_x);
-	border.setAttribute('y', offset_y);
-	border.setAttribute('width', outerWidth);
-	border.setAttribute('height', outerHeight);
-	border.setAttribute('fill', 'none');
-	border.setAttribute('stroke', 'rgb(200,200,200)');
-	border.setAttribute('stroke-width', 0.05);
-	svg.appendChild(border);
-
-	return svg;
+	return {
+		outlineGroup: outlineGroup,
+		pixelGroup: pixelGroup
+	};
 }
 
 // 正規分布に従う乱数を生成
@@ -126,7 +211,7 @@ function rnorm(randomSource = Math.random) {
 	return Math.sqrt(-2 * Math.log(1 - randomSource())) * Math.cos(2 * Math.PI * randomSource());
 }
 
-function generateRandomPattern(svg, width, height, point_num, bit_size, large_side_cm, small_side_cm, contrast_strength, shape_type, randomSource) {
+function generateRandomPattern(group, width, height, point_num, bit_size, large_side_cm, small_side_cm, contrast_strength, shape_type, randomSource) {
         // Create random centor points
         let points = [];
         for (var i = 0; i < point_num; i++) {
@@ -217,10 +302,10 @@ function generateRandomPattern(svg, width, height, point_num, bit_size, large_si
                 elem.setAttribute('fill', fill_color);
                 elem.setAttribute('stroke', stroke_color);
                 elem.setAttribute('stroke-width', stroke_width);
-                svg.appendChild(elem);
+                group.appendChild(elem);
         }
 
-        return svg;
+        return group;
 }
 
 var dict;
@@ -234,7 +319,7 @@ function selectedLayout() {
 	return "layout-tile";
 }
 
-function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_width, field_height, polygon_num, large_side_cm, small_side_cm, contrast_strength, shape_type, marker_margin_mm, marker_quiet_zone, random_seed) {
+function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_width, field_height, polygon_num, large_side_cm, small_side_cm, contrast_strength, shape_type, marker_margin_mm, marker_quiet_zone, random_seed, markerIcon) {
         console.log('Generate ArUco marker ' + dictName + ' ' + id + ' - ' + (id + num - 1) + ' with size ' + width + 'x' + height + ' mm' + ' and layout ' + selectedLayout() + ', random seed: ' + random_seed);
         var viebox_width = (field_width / bit_size);
         var viebox_height = (field_height / bit_size);
@@ -250,13 +335,26 @@ function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_
 	svg.setAttribute('width', field_width + 'mm');
 	svg.setAttribute('height', field_height + 'mm');
 	svg.setAttribute('viewBox', '0 0 ' + viebox_width + ' ' + viebox_height);
-	svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+	svg.setAttribute('xmlns', svgNamespace);
+	svg.setAttribute('xmlns:xlink', xlinkNamespace);
 	svg.setAttribute('shape-rendering', 'crispEdges');
+
+        var randomShapesGroup = createSvgGroup('random-shapes');
+        var markerOutlinesGroup = createSvgGroup('marker-outlines');
+        var markerPixelsGroup = createSvgGroup('marker-pixels');
+        var markerIconsGroup = createSvgGroup('marker-icons');
+        var markerLabelsGroup = createSvgGroup('marker-labels');
+
+        svg.appendChild(randomShapesGroup);
+        svg.appendChild(markerOutlinesGroup);
+        svg.appendChild(markerPixelsGroup);
+        svg.appendChild(markerIconsGroup);
+        svg.appendChild(markerLabelsGroup);
 
         var randomSource = createRandomSource(random_seed);
 
         // Generate Random pattern
-        svg = generateRandomPattern(svg, viebox_width, viebox_height, polygon_num, bit_size, large_side_cm, small_side_cm, contrast_strength, shape_type, randomSource);
+        generateRandomPattern(randomShapesGroup, viebox_width, viebox_height, polygon_num, bit_size, large_side_cm, small_side_cm, contrast_strength, shape_type, randomSource);
 
         let horizontalCapacity = Math.floor((viebox_width + markerMargin) / markerStepX);
         let verticalCapacity = Math.floor((viebox_height + markerMargin) / markerStepY);
@@ -349,16 +447,21 @@ function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_
                                 return;
 		}
 
-		svg = generateMarkerSvg(svg, width, height, bits, offset_x, offset_y, quietZone);
+		var markerOutlineGroup = createSvgGroup('marker-outline-' + (id + id_offset));
+		var markerPixelGroup = createSvgGroup('marker-pixels-' + (id + id_offset));
+		markerOutlinesGroup.appendChild(markerOutlineGroup);
+		markerPixelsGroup.appendChild(markerPixelGroup);
+		generateMarkerSvg(markerOutlineGroup, markerPixelGroup, width, height, bits, offset_x, offset_y, quietZone);
+		appendMarkerIcon(markerIconsGroup, markerIcon, offset_x, offset_y, markerOuterWidth, quietZone);
 		// Draw ID
 		var text = document.createElement('text');
 		text.setAttribute('x', offset_x + 1);
 		text.setAttribute('y', offset_y + markerOuterHeight - 0.1);
 		text.setAttribute('fill', 'rgb(192,255,192)');
-		text.setAttribute('font-size', 0.8);
+		text.setAttribute('font-size', labelFontSize);
 		text.setAttribute('font-family', 'Arial');
 		text.textContent = dictName + ' : ' + (id + id_offset);
-		svg.appendChild(text);
+		markerLabelsGroup.appendChild(text);
 	}
 	return svg
 }
@@ -396,13 +499,33 @@ function applyFormState(setupForm, formState) {
                         return;
                 }
 
+                if (field.type === 'file') {
+                        return;
+                }
+
                 field.value = formState[name];
         });
 }
 
+function createSerializableFormState(setupForm) {
+        var formState = {};
+        Array.from(setupForm.elements).forEach(function(field) {
+                if (!field.name || field.disabled || field.type === 'file') {
+                        return;
+                }
+
+                if ((field.type === 'radio' || field.type === 'checkbox') && !field.checked) {
+                        return;
+                }
+
+                formState[field.name] = field.value;
+        });
+        return formState;
+}
+
 function saveFormState(setupForm) {
         try {
-                var formState = Object.fromEntries(new FormData(setupForm).entries());
+                var formState = createSerializableFormState(setupForm);
                 localStorage.setItem(formStateStorageKey, JSON.stringify(formState));
         } catch (error) {
                 console.warn('Failed to save form state', error);
@@ -446,6 +569,7 @@ function init() {
         var randomSeedInput = document.querySelector('.field input[name=random-seed]');
         var markerMarginInput = document.querySelector('.field input[name=marker-margin]');
         var markerQuietZoneInput = document.querySelector('.field input[name=marker-quiet-zone]');
+        var markerDropZone = document.getElementById('marker-drop-zone');
         var markerLayout = document.getElementsByName('marker-layout');
 
         applyFormState(setupForm, loadSavedFormState());
@@ -530,7 +654,7 @@ function init() {
                 // Wait until dict data is loaded
                 loadDict.then(function() {
                         // Generate marker
-                        var svg = generateTriOrbMarker(markerWidth, markerHeight, dictName, markerId, markerNum, bitSize, fieldWidth, fieldHeight, polygonNum, largeTriangleCm, smallTriangleCm, contrastStrength, shapeType, markerMargin, markerQuietZone, randomSeed);
+                        var svg = generateTriOrbMarker(markerWidth, markerHeight, dictName, markerId, markerNum, bitSize, fieldWidth, fieldHeight, polygonNum, largeTriangleCm, smallTriangleCm, contrastStrength, shapeType, markerMargin, markerQuietZone, randomSeed, uploadedMarkerIcon);
 			if (!svg) {
 				return;
 			}
@@ -560,7 +684,26 @@ function init() {
 		})
 	}
 
+        function applyMarkerIcon(fileList) {
+                readFirstPngFile(fileList).then(function(icon) {
+                        uploadedMarkerIcon = icon;
+                        updateMarker();
+                }).catch(function(error) {
+                        uploadedMarkerIcon = null;
+                        silentAlert('[ERROR] ' + error.message);
+                        updateMarker();
+                });
+        }
+
 	updateMarker();
+
+        ['dragover', 'drop'].forEach(function(eventName) {
+                window.addEventListener(eventName, function(event) {
+                        if (event.dataTransfer && event.dataTransfer.types && Array.from(event.dataTransfer.types).indexOf('Files') !== -1) {
+                                event.preventDefault();
+                        }
+                });
+        });
 
         dictSelect.addEventListener('change', updateMarker);
         dictSelect.addEventListener('input', updateMarker);
@@ -577,6 +720,32 @@ function init() {
         randomSeedInput.addEventListener('input', updateMarker);
         markerMarginInput.addEventListener('input', updateMarker);
         markerQuietZoneInput.addEventListener('input', updateMarker);
+        ['dragenter', 'dragover'].forEach(function(eventName) {
+                markerDropZone.addEventListener(eventName, function(event) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        markerDropZone.classList.add('is-dragover');
+                });
+        });
+        ['dragleave', 'dragend'].forEach(function(eventName) {
+                markerDropZone.addEventListener(eventName, function(event) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        if (event.target === markerDropZone || !markerDropZone.contains(event.relatedTarget)) {
+                                markerDropZone.classList.remove('is-dragover');
+                        }
+                });
+        });
+        markerDropZone.addEventListener('drop', function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                markerDropZone.classList.remove('is-dragover');
+                var files = event.dataTransfer && event.dataTransfer.files;
+                if (!files || files.length === 0) {
+                        return;
+                }
+                applyMarkerIcon(files);
+        });
         markerLayout.forEach(function (radio) {
                 radio.addEventListener('change', function (radio) {
                         updateMarker();
@@ -586,10 +755,11 @@ function init() {
         setupForm.addEventListener('submit', function (event) {
                 event.preventDefault();
                 saveFormState(setupForm);
-                var params = new URLSearchParams(new FormData(setupForm));
-                var target = (window.top && window.top.location) ? window.top.location : window.location;
-                var newUrl = target.origin + target.pathname + '?' + params.toString() + target.hash;
-                target.href = newUrl;
+                var params = new URLSearchParams(createSerializableFormState(setupForm));
+                var query = params.toString();
+                var newUrl = window.location.pathname + (query ? '?' + query : '') + window.location.hash;
+                window.history.replaceState(null, '', newUrl);
+                updateMarker();
         });
 }
 
