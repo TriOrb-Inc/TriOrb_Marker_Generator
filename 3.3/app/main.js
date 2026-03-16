@@ -34,7 +34,13 @@ function silentAlert(msg) {
 		, 5000);
 }
 
-function generateMarkerSvg(svg, width, height, bits, offset_x = 0, offset_y = 0, quiet_zone = 1, draw_border = true) {
+function createSvgGroup(id) {
+	var group = document.createElement('g');
+	group.setAttribute('id', id);
+	return group;
+}
+
+function generateMarkerSvg(outlineGroup, pixelGroup, width, height, bits, offset_x = 0, offset_y = 0, quiet_zone = 1, draw_border = true) {
 	var outerWidth = width + 2 + quiet_zone * 2;
 	var outerHeight = height + 2 + quiet_zone * 2;
 	var markerOffsetX = offset_x + quiet_zone;
@@ -48,7 +54,7 @@ function generateMarkerSvg(svg, width, height, bits, offset_x = 0, offset_y = 0,
 		pixel.setAttribute('width', outerWidth);
 		pixel.setAttribute('height', outerHeight);
 		pixel.setAttribute('fill', 'white');
-		svg.appendChild(pixel);
+		outlineGroup.appendChild(pixel);
 	}
 
 	// Background rect
@@ -58,7 +64,7 @@ function generateMarkerSvg(svg, width, height, bits, offset_x = 0, offset_y = 0,
 	rect.setAttribute('width', width + 2);
 	rect.setAttribute('height', height + 2);
 	rect.setAttribute('fill', 'black');
-	svg.appendChild(rect);
+	outlineGroup.appendChild(rect);
 
 	// "Pixels"
 	for (var i = 0; i < height; i++) {
@@ -72,7 +78,7 @@ function generateMarkerSvg(svg, width, height, bits, offset_x = 0, offset_y = 0,
 			pixel.setAttribute('x', markerOffsetX + j + 1);
 			pixel.setAttribute('y', markerOffsetY + i + 1);
 			pixel.setAttribute('fill', 'white');
-			svg.appendChild(pixel);
+			pixelGroup.appendChild(pixel);
 
 			//if (!fixPdfArtifacts) continue;
 
@@ -87,7 +93,7 @@ function generateMarkerSvg(svg, width, height, bits, offset_x = 0, offset_y = 0,
 				pixel2.setAttribute('x', markerOffsetX + j + 1);
 				pixel2.setAttribute('y', markerOffsetY + i + 1);
 				pixel2.setAttribute('fill', 'white');
-				svg.appendChild(pixel2);
+				pixelGroup.appendChild(pixel2);
 			}
 		}
 	}
@@ -101,9 +107,12 @@ function generateMarkerSvg(svg, width, height, bits, offset_x = 0, offset_y = 0,
 	border.setAttribute('fill', 'none');
 	border.setAttribute('stroke', 'rgb(200,200,200)');
 	border.setAttribute('stroke-width', 0.05);
-	svg.appendChild(border);
+	outlineGroup.appendChild(border);
 
-	return svg;
+	return {
+		outlineGroup: outlineGroup,
+		pixelGroup: pixelGroup
+	};
 }
 
 // 正規分布に従う乱数を生成
@@ -126,7 +135,7 @@ function rnorm(randomSource = Math.random) {
 	return Math.sqrt(-2 * Math.log(1 - randomSource())) * Math.cos(2 * Math.PI * randomSource());
 }
 
-function generateRandomPattern(svg, width, height, point_num, bit_size, large_side_cm, small_side_cm, contrast_strength, shape_type, randomSource) {
+function generateRandomPattern(group, width, height, point_num, bit_size, large_side_cm, small_side_cm, contrast_strength, shape_type, randomSource) {
         // Create random centor points
         let points = [];
         for (var i = 0; i < point_num; i++) {
@@ -217,10 +226,10 @@ function generateRandomPattern(svg, width, height, point_num, bit_size, large_si
                 elem.setAttribute('fill', fill_color);
                 elem.setAttribute('stroke', stroke_color);
                 elem.setAttribute('stroke-width', stroke_width);
-                svg.appendChild(elem);
+                group.appendChild(elem);
         }
 
-        return svg;
+        return group;
 }
 
 var dict;
@@ -253,10 +262,20 @@ function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_
 	svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
 	svg.setAttribute('shape-rendering', 'crispEdges');
 
+        var randomShapesGroup = createSvgGroup('random-shapes');
+        var markerOutlinesGroup = createSvgGroup('marker-outlines');
+        var markerPixelsGroup = createSvgGroup('marker-pixels');
+        var markerLabelsGroup = createSvgGroup('marker-labels');
+
+        svg.appendChild(randomShapesGroup);
+        svg.appendChild(markerOutlinesGroup);
+        svg.appendChild(markerPixelsGroup);
+        svg.appendChild(markerLabelsGroup);
+
         var randomSource = createRandomSource(random_seed);
 
         // Generate Random pattern
-        svg = generateRandomPattern(svg, viebox_width, viebox_height, polygon_num, bit_size, large_side_cm, small_side_cm, contrast_strength, shape_type, randomSource);
+        generateRandomPattern(randomShapesGroup, viebox_width, viebox_height, polygon_num, bit_size, large_side_cm, small_side_cm, contrast_strength, shape_type, randomSource);
 
         let horizontalCapacity = Math.floor((viebox_width + markerMargin) / markerStepX);
         let verticalCapacity = Math.floor((viebox_height + markerMargin) / markerStepY);
@@ -349,7 +368,11 @@ function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_
                                 return;
 		}
 
-		svg = generateMarkerSvg(svg, width, height, bits, offset_x, offset_y, quietZone);
+		var markerOutlineGroup = createSvgGroup('marker-outline-' + (id + id_offset));
+		var markerPixelGroup = createSvgGroup('marker-pixels-' + (id + id_offset));
+		markerOutlinesGroup.appendChild(markerOutlineGroup);
+		markerPixelsGroup.appendChild(markerPixelGroup);
+		generateMarkerSvg(markerOutlineGroup, markerPixelGroup, width, height, bits, offset_x, offset_y, quietZone);
 		// Draw ID
 		var text = document.createElement('text');
 		text.setAttribute('x', offset_x + 1);
@@ -358,7 +381,7 @@ function generateTriOrbMarker(width, height, dictName, id, num, bit_size, field_
 		text.setAttribute('font-size', 0.8);
 		text.setAttribute('font-family', 'Arial');
 		text.textContent = dictName + ' : ' + (id + id_offset);
-		svg.appendChild(text);
+		markerLabelsGroup.appendChild(text);
 	}
 	return svg
 }
