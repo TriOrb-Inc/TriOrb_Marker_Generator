@@ -64,7 +64,7 @@ function generateMarkerSvg(outlineGroup, pixelGroup, width, height, bits, offset
 	rect.setAttribute('width', width + 2);
 	rect.setAttribute('height', height + 2);
 	rect.setAttribute('fill', 'black');
-	outlineGroup.appendChild(rect);
+	pixelGroup.appendChild(rect);
 
 	// "Pixels"
 	for (var i = 0; i < height; i++) {
