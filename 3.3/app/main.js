@@ -756,10 +756,10 @@ function init() {
                 event.preventDefault();
                 saveFormState(setupForm);
                 var params = new URLSearchParams(createSerializableFormState(setupForm));
-                var query = params.toString();
-                var newUrl = window.location.pathname + (query ? '?' + query : '') + window.location.hash;
-                window.history.replaceState(null, '', newUrl);
-                updateMarker();
+                uploadedMarkerIcon = null;
+                var target = (window.top && window.top.location) ? window.top.location : window.location;
+                var newUrl = target.origin + target.pathname + '?' + params.toString() + target.hash;
+                target.href = newUrl;
         });
 }
 
