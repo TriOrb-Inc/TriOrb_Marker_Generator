@@ -569,7 +569,6 @@ function init() {
         var randomSeedInput = document.querySelector('.field input[name=random-seed]');
         var markerMarginInput = document.querySelector('.field input[name=marker-margin]');
         var markerQuietZoneInput = document.querySelector('.field input[name=marker-quiet-zone]');
-        var markerIconInput = document.querySelector('.field input[name=marker-icon]');
         var markerDropZone = document.getElementById('marker-drop-zone');
         var markerLayout = document.getElementsByName('marker-layout');
 
@@ -685,15 +684,12 @@ function init() {
 		})
 	}
 
-        function applyMarkerIcon(fileList, clearInputOnError) {
+        function applyMarkerIcon(fileList) {
                 readFirstPngFile(fileList).then(function(icon) {
                         uploadedMarkerIcon = icon;
                         updateMarker();
                 }).catch(function(error) {
                         uploadedMarkerIcon = null;
-                        if (clearInputOnError) {
-                                markerIconInput.value = '';
-                        }
                         silentAlert('[ERROR] ' + error.message);
                         updateMarker();
                 });
@@ -724,9 +720,6 @@ function init() {
         randomSeedInput.addEventListener('input', updateMarker);
         markerMarginInput.addEventListener('input', updateMarker);
         markerQuietZoneInput.addEventListener('input', updateMarker);
-        markerIconInput.addEventListener('change', function () {
-                applyMarkerIcon(markerIconInput.files, true);
-        });
         ['dragenter', 'dragover'].forEach(function(eventName) {
                 markerDropZone.addEventListener(eventName, function(event) {
                         event.preventDefault();
@@ -751,7 +744,7 @@ function init() {
                 if (!files || files.length === 0) {
                         return;
                 }
-                applyMarkerIcon(files, false);
+                applyMarkerIcon(files);
         });
         markerLayout.forEach(function (radio) {
                 radio.addEventListener('change', function (radio) {
