@@ -1,40 +1,54 @@
-# TriOrb Marker Generator
-
-Welcome to the TriOrb marker generator site. Use the hosted tool to create printable markers and export them as SVG or PDF files.
-
-- **Launch the generator:** [Open the web app](app/index.html)
-- **About the tool:** The app is bundled as a static HTML experience under `app/` and is included in versioned documentation builds produced by MkDocs and mike.
-
-<style>
-  /* タイトルバーの配色と検索非表示を確実に反映（Bootstrap 5 nav対応） */
-  .navbar.fixed-top {
-    background-color: rgb(34, 59, 128) !important;
-    border-color: rgb(34, 59, 128) !important;
-    background-image: none !important;
-    --bs-navbar-color: #fff;
-    --bs-navbar-hover-color: #fff;
-    --bs-navbar-brand-color: #fff;
-    --bs-navbar-brand-hover-color: #fff;
-  }
-  .navbar.fixed-top .navbar-brand,
-  .navbar.fixed-top .nav-link {
-    color: #fff !important;
-  }
-  #navbar-collapse .nav-link[data-bs-target="#mkdocs_search_modal"],
-  #navbar-collapse .fa-search,
-  #navbar-collapse .nav.navbar-nav.ms-md-auto {
-    display: none !important;
-  }
-</style>
-
-<iframe id="generator-iframe" src="app/index.html" title="TriOrb Marker Generator" style="width: 100%; height: 900px; border: 1px solid #ddd; border-radius: 8px;"></iframe>
+<div class="generator-page">
+  <p class="generator-page__lead">Generate printable TriOrb markers and export them as SVG or PDF.</p>
+  <iframe
+    id="generator-iframe"
+    class="generator-page__frame"
+    src="app/index.html"
+    title="TriOrb Marker Generator"
+  ></iframe>
+</div>
 
 <script>
   (function () {
     const iframe = document.getElementById('generator-iframe');
     if (!iframe) return;
+
+    const defaultHeight = 960;
     const baseSrc = iframe.getAttribute('src').split('?')[0];
     const query = window.location.search || '';
+
+    function getAvailableHeight() {
+      const footer = document.querySelector('footer.col-md-12');
+      const footerHeight = footer ? footer.getBoundingClientRect().height : 0;
+      const frameTop = iframe.getBoundingClientRect().top;
+      const availableHeight = window.innerHeight - frameTop - footerHeight;
+      return Math.max(defaultHeight, Math.floor(availableHeight));
+    }
+
+    function syncFrameHeight() {
+      const height = getAvailableHeight();
+      iframe.style.height = height + 'px';
+    }
+
+    window.addEventListener('message', function (event) {
+      if (!event || !event.data || event.data.type !== 'triorb-generator-height') {
+        return;
+      }
+
+      syncFrameHeight();
+    });
+
+    window.addEventListener('resize', function () {
+      syncFrameHeight();
+    });
+
+    iframe.addEventListener('load', function () {
+      requestAnimationFrame(function () {
+        syncFrameHeight();
+      });
+    });
+
+    syncFrameHeight();
     iframe.setAttribute('src', baseSrc + query);
   })();
 </script>
