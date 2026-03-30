@@ -51,6 +51,16 @@ function createSvgNode(tagName) {
 	return document.createElementNS(svgNamespace, tagName);
 }
 
+function appendRectPath(pathParts, x, y, width, height) {
+	pathParts.push(
+		'M', x, ' ', y,
+		'h', width,
+		'v', height,
+		'h', -width,
+		'Z'
+	);
+}
+
 function loadImageDimensions(dataUrl) {
 	return new Promise(function(resolve, reject) {
 		var image = new Image();
@@ -145,46 +155,32 @@ function generateMarkerSvg(outlineGroup, pixelGroup, width, height, bits, offset
 		outlineGroup.appendChild(pixel);
 	}
 
-	// Background rect
-	var rect = document.createElement('rect');
-	rect.setAttribute('x', markerOffsetX);
-	rect.setAttribute('y', markerOffsetY);
-	rect.setAttribute('width', width + 2);
-	rect.setAttribute('height', height + 2);
-	rect.setAttribute('fill', 'black');
-	pixelGroup.appendChild(rect);
+	// Draw a white outline rect with one black fill path inside it.
+	var pathParts = [];
+	appendRectPath(pathParts, markerOffsetX, markerOffsetY, width + 2, height + 2);
 
-	// "Pixels"
 	for (var i = 0; i < height; i++) {
 		for (var j = 0; j < width; j++) {
-			var white = bits[i * height + j];
+			var white = bits[i * width + j];
 			if (!white) continue;
 
-			var pixel = document.createElement('rect');;
-			pixel.setAttribute('width', 1);
-			pixel.setAttribute('height', 1);
-			pixel.setAttribute('x', markerOffsetX + j + 1);
-			pixel.setAttribute('y', markerOffsetY + i + 1);
-			pixel.setAttribute('fill', 'white');
-			pixelGroup.appendChild(pixel);
-
-			//if (!fixPdfArtifacts) continue;
-
-			if ((j < width - 1) && (bits[i * height + j + 1])) {
-				pixel.setAttribute('width', 1.5);
+			var pixelWidth = 1;
+			if ((j < width - 1) && (bits[i * width + j + 1])) {
+				pixelWidth = 1.5;
 			}
+			appendRectPath(pathParts, markerOffsetX + j + 1, markerOffsetY + i + 1, pixelWidth, 1);
 
-			if ((i < height - 1) && (bits[(i + 1) * height + j])) {
-				var pixel2 = document.createElement('rect');;
-				pixel2.setAttribute('width', 1);
-				pixel2.setAttribute('height', 1.5);
-				pixel2.setAttribute('x', markerOffsetX + j + 1);
-				pixel2.setAttribute('y', markerOffsetY + i + 1);
-				pixel2.setAttribute('fill', 'white');
-				pixelGroup.appendChild(pixel2);
+			if ((i < height - 1) && (bits[(i + 1) * width + j])) {
+				appendRectPath(pathParts, markerOffsetX + j + 1, markerOffsetY + i + 1, 1, 1.5);
 			}
 		}
 	}
+
+	var path = createSvgNode('path');
+	path.setAttribute('fill', 'black');
+	path.setAttribute('fill-rule', 'evenodd');
+	path.setAttribute('d', pathParts.join(''));
+	pixelGroup.appendChild(path);
 
 	// 枠線
 	return {
