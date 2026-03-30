@@ -1,3 +1,7 @@
+body.homepage {
+  --page-gutter: 24px;
+}
+
 /* Hide the left-hand table of contents */
 .bs-sidebar,
 .navbar-expand-md.bs-sidebar,
@@ -16,6 +20,13 @@
   --bs-navbar-brand-hover-color: #fff;
 }
 
+.navbar.fixed-top .container,
+.navbar.fixed-top .container-fluid {
+  max-width: none;
+  padding-left: var(--page-gutter);
+  padding-right: var(--page-gutter);
+}
+
 .navbar.fixed-top .navbar-brand,
 .navbar.fixed-top .nav-link {
   color: #fff !important;
@@ -29,10 +40,15 @@
 }
 
 /* Let the main column consume the full row width */
+.homepage > .container > .row {
+  margin-left: 0;
+  margin-right: 0;
+}
+
 .container .row > .col-md-9 {
   flex: 0 0 100%;
   max-width: 100%;
-  padding: 12px 12px 0;
+  padding: 12px var(--page-gutter) 0;
 }
 
 /* Remove the default width cap on the page body container */
@@ -96,8 +112,12 @@ footer.col-md-12 p {
 }
 
 @media (max-width: 767px) {
+  body.homepage {
+    --page-gutter: 16px;
+  }
+
   .container .row > .col-md-9 {
-    padding: 8px 8px 0;
+    padding: 8px var(--page-gutter) 0;
   }
 
   .generator-page__lead {
