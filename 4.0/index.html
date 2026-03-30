@@ -77,7 +77,6 @@
     const defaultHeight = 960;
     const baseSrc = iframe.getAttribute('src').split('?')[0];
     const query = window.location.search || '';
-    let contentHeight = defaultHeight;
 
     function getAvailableHeight() {
       const footer = document.querySelector('footer.col-md-12');
@@ -87,12 +86,8 @@
       return Math.max(defaultHeight, Math.floor(availableHeight));
     }
 
-    function syncFrameHeight(nextContentHeight) {
-      if (nextContentHeight != null) {
-        contentHeight = Math.max(defaultHeight, Number(nextContentHeight) || 0);
-      }
-
-      const height = Math.max(contentHeight, getAvailableHeight());
+    function syncFrameHeight() {
+      const height = getAvailableHeight();
       iframe.style.height = height + 'px';
     }
 
@@ -101,7 +96,7 @@
         return;
       }
 
-      syncFrameHeight(event.data.height);
+      syncFrameHeight();
     });
 
     window.addEventListener('resize', function () {
@@ -114,7 +109,7 @@
       });
     });
 
-    syncFrameHeight(defaultHeight);
+    syncFrameHeight();
     iframe.setAttribute('src', baseSrc + query);
   })();
 </script></div>
@@ -200,5 +195,5 @@
 
 <!--
 MkDocs version : 1.6.1
-Build Date UTC : 2026-03-30 00:54:26.051666+00:00
+Build Date UTC : 2026-03-30 01:01:05.951809+00:00
 -->

@@ -541,10 +541,9 @@ function notifyParentHeight() {
         }
 
         var height = Math.max(
-                document.documentElement.scrollHeight,
-                document.body.scrollHeight,
-                document.documentElement.offsetHeight,
-                document.body.offsetHeight
+                window.innerHeight,
+                document.documentElement.clientHeight,
+                document.body.clientHeight
         );
 
         window.parent.postMessage({
