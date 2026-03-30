@@ -155,30 +155,33 @@ function generateMarkerSvg(outlineGroup, pixelGroup, width, height, bits, offset
 		outlineGroup.appendChild(pixel);
 	}
 
-	// Draw a white outline rect with one black fill path inside it.
+	// Draw the marker body as black polygons inside the white outline rect.
 	var pathParts = [];
-	appendRectPath(pathParts, markerOffsetX, markerOffsetY, width + 2, height + 2);
 
-	for (var i = 0; i < height; i++) {
-		for (var j = 0; j < width; j++) {
-			var white = bits[i * width + j];
-			if (!white) continue;
+	function isBlackCell(row, col) {
+		if (row === 0 || col === 0 || row === height + 1 || col === width + 1) {
+			return true;
+		}
+		return !bits[(row - 1) * width + (col - 1)];
+	}
 
-			var pixelWidth = 1;
-			if ((j < width - 1) && (bits[i * width + j + 1])) {
-				pixelWidth = 1.5;
+	for (var i = 0; i < height + 2; i++) {
+		for (var j = 0; j < width + 2; ) {
+			if (!isBlackCell(i, j)) {
+				j += 1;
+				continue;
 			}
-			appendRectPath(pathParts, markerOffsetX + j + 1, markerOffsetY + i + 1, pixelWidth, 1);
 
-			if ((i < height - 1) && (bits[(i + 1) * width + j])) {
-				appendRectPath(pathParts, markerOffsetX + j + 1, markerOffsetY + i + 1, 1, 1.5);
+			var runStart = j;
+			while (j < width + 2 && isBlackCell(i, j)) {
+				j += 1;
 			}
+			appendRectPath(pathParts, markerOffsetX + runStart, markerOffsetY + i, j - runStart, 1);
 		}
 	}
 
 	var path = createSvgNode('path');
 	path.setAttribute('fill', 'black');
-	path.setAttribute('fill-rule', 'evenodd');
 	path.setAttribute('d', pathParts.join(''));
 	pixelGroup.appendChild(path);
 
