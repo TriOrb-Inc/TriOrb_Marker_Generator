@@ -31,10 +31,12 @@ function silentAlert(msg) {
 	let input = document.getElementById('error-message');
 	input.value = msg;
 	input.style.display = 'block';
+	notifyParentHeight();
 	timeout = setTimeout(function () {
 		input.value = '';
 		input.style.display = 'none';
 		timeout = null;
+		notifyParentHeight();
 	}
 		, 5000);
 }
@@ -47,6 +49,16 @@ function createSvgGroup(id) {
 
 function createSvgNode(tagName) {
 	return document.createElementNS(svgNamespace, tagName);
+}
+
+function appendRectPath(pathParts, x, y, width, height) {
+	pathParts.push(
+		'M', x, ' ', y,
+		'h', width,
+		'v', height,
+		'h', -width,
+		'Z'
+	);
 }
 
 function loadImageDimensions(dataUrl) {
@@ -115,7 +127,7 @@ function appendMarkerIcon(group, markerIcon, offset_x, offset_y, markerOuterWidt
 
 	var image = createSvgNode('image');
 	image.setAttribute('x', offset_x + (markerOuterWidth - iconWidth) / 2);
-	image.setAttribute('y', offset_y + Math.max((quietZone - iconHeight) / 2, 0));
+	image.setAttribute('y', offset_y);
 	image.setAttribute('width', iconWidth);
 	image.setAttribute('height', iconHeight);
 	image.setAttribute('preserveAspectRatio', 'xMidYMid meet');
@@ -143,46 +155,35 @@ function generateMarkerSvg(outlineGroup, pixelGroup, width, height, bits, offset
 		outlineGroup.appendChild(pixel);
 	}
 
-	// Background rect
-	var rect = document.createElement('rect');
-	rect.setAttribute('x', markerOffsetX);
-	rect.setAttribute('y', markerOffsetY);
-	rect.setAttribute('width', width + 2);
-	rect.setAttribute('height', height + 2);
-	rect.setAttribute('fill', 'black');
-	pixelGroup.appendChild(rect);
+	// Draw the marker body as black polygons inside the white outline rect.
+	var pathParts = [];
 
-	// "Pixels"
-	for (var i = 0; i < height; i++) {
-		for (var j = 0; j < width; j++) {
-			var white = bits[i * height + j];
-			if (!white) continue;
+	function isBlackCell(row, col) {
+		if (row === 0 || col === 0 || row === height + 1 || col === width + 1) {
+			return true;
+		}
+		return !bits[(row - 1) * width + (col - 1)];
+	}
 
-			var pixel = document.createElement('rect');;
-			pixel.setAttribute('width', 1);
-			pixel.setAttribute('height', 1);
-			pixel.setAttribute('x', markerOffsetX + j + 1);
-			pixel.setAttribute('y', markerOffsetY + i + 1);
-			pixel.setAttribute('fill', 'white');
-			pixelGroup.appendChild(pixel);
-
-			//if (!fixPdfArtifacts) continue;
-
-			if ((j < width - 1) && (bits[i * height + j + 1])) {
-				pixel.setAttribute('width', 1.5);
+	for (var i = 0; i < height + 2; i++) {
+		for (var j = 0; j < width + 2; ) {
+			if (!isBlackCell(i, j)) {
+				j += 1;
+				continue;
 			}
 
-			if ((i < height - 1) && (bits[(i + 1) * height + j])) {
-				var pixel2 = document.createElement('rect');;
-				pixel2.setAttribute('width', 1);
-				pixel2.setAttribute('height', 1.5);
-				pixel2.setAttribute('x', markerOffsetX + j + 1);
-				pixel2.setAttribute('y', markerOffsetY + i + 1);
-				pixel2.setAttribute('fill', 'white');
-				pixelGroup.appendChild(pixel2);
+			var runStart = j;
+			while (j < width + 2 && isBlackCell(i, j)) {
+				j += 1;
 			}
+			appendRectPath(pathParts, markerOffsetX + runStart, markerOffsetY + i, j - runStart, 1);
 		}
 	}
+
+	var path = createSvgNode('path');
+	path.setAttribute('fill', 'black');
+	path.setAttribute('d', pathParts.join(''));
+	pixelGroup.appendChild(path);
 
 	// 枠線
 	return {
@@ -474,6 +475,7 @@ var loadDict = fetch('dict.json').then(function(res) {
 });
 
 var formStateStorageKey = 'triorb-marker-generator-form-state';
+var sidebarStateStorageKey = 'triorb-marker-generator-sidebar-open';
 
 function loadSavedFormState() {
         try {
@@ -532,6 +534,47 @@ function saveFormState(setupForm) {
         }
 }
 
+function notifyParentHeight() {
+        if (window.parent === window) {
+                return;
+        }
+
+        var height = Math.max(
+                window.innerHeight,
+                document.documentElement.clientHeight,
+                document.body.clientHeight
+        );
+
+        window.parent.postMessage({
+                type: 'triorb-generator-height',
+                height: height
+        }, '*');
+}
+
+function loadSidebarState() {
+        try {
+                var raw = localStorage.getItem(sidebarStateStorageKey);
+                if (raw === 'true') {
+                        return true;
+                }
+                if (raw === 'false') {
+                        return false;
+                }
+        } catch (error) {
+                console.warn('Failed to load sidebar state', error);
+        }
+
+        return null;
+}
+
+function saveSidebarState(isOpen) {
+        try {
+                localStorage.setItem(sidebarStateStorageKey, String(isOpen));
+        } catch (error) {
+                console.warn('Failed to save sidebar state', error);
+        }
+}
+
 //[ref] https://qiita.com/akinov/items/26a7fc36d7c0045dd2db
 function getUrlQueries() {
 	var queryStr = window.location.search.slice(1);  // 文頭?を除外
@@ -571,8 +614,35 @@ function init() {
         var markerQuietZoneInput = document.querySelector('.field input[name=marker-quiet-zone]');
         var markerDropZone = document.getElementById('marker-drop-zone');
         var markerLayout = document.getElementsByName('marker-layout');
+        var sidebarToggleButton = document.getElementById('sidebar-toggle');
+        var sidebarHideButton = document.getElementById('sidebar-hide-button');
+        var appBackdrop = document.getElementById('app-backdrop');
+        var mobileViewport = window.matchMedia('(max-width: 960px)');
+        var storedSidebarState = loadSidebarState();
+
+        function syncBackdropVisibility(isSidebarOpen) {
+                if (!appBackdrop) {
+                        return;
+                }
+
+                appBackdrop.hidden = !(mobileViewport.matches && isSidebarOpen);
+        }
+
+        function setSidebarOpen(isSidebarOpen, persistState) {
+                document.body.classList.toggle('is-sidebar-open', isSidebarOpen);
+                if (sidebarToggleButton) {
+                        sidebarToggleButton.setAttribute('aria-expanded', String(isSidebarOpen));
+                }
+                syncBackdropVisibility(isSidebarOpen);
+                if (persistState !== false) {
+                        storedSidebarState = isSidebarOpen;
+                        saveSidebarState(isSidebarOpen);
+                }
+                window.requestAnimationFrame(notifyParentHeight);
+        }
 
         applyFormState(setupForm, loadSavedFormState());
+        setSidebarOpen(storedSidebarState === null ? !mobileViewport.matches : storedSidebarState, false);
 
 	const params = new URLSearchParams(location.search);
 	if (params.has('dict')) {
@@ -673,6 +743,7 @@ function init() {
 			document.querySelector('.marker').innerHTML = svg.outerHTML;
 			saveButton.setAttribute('href', 'data:image/svg;base64,' + btoa(svg.outerHTML.replace('viewbox', 'viewBox')));
 			saveButton.setAttribute('download', filename);
+                        window.requestAnimationFrame(notifyParentHeight);
 			if (markerNum > 0) {
 				if (markerNum > 1) {
 					//document.querySelector('.marker-id').innerHTML = dictName + ' : ' + markerId + ' - ' + (markerId + markerNum - 1);
@@ -751,15 +822,66 @@ function init() {
                         updateMarker();
                 });
         });
+        if (sidebarToggleButton) {
+                sidebarToggleButton.addEventListener('click', function() {
+                        setSidebarOpen(!document.body.classList.contains('is-sidebar-open'));
+                });
+        }
+        if (sidebarHideButton) {
+                sidebarHideButton.addEventListener('click', function() {
+                        setSidebarOpen(false);
+                });
+        }
+        if (appBackdrop) {
+                appBackdrop.addEventListener('click', function() {
+                        setSidebarOpen(false);
+                });
+        }
+        function handleMobileViewportChange() {
+                if (storedSidebarState === null) {
+                        setSidebarOpen(!mobileViewport.matches, false);
+                        return;
+                }
+                syncBackdropVisibility(document.body.classList.contains('is-sidebar-open'));
+                window.requestAnimationFrame(notifyParentHeight);
+        }
+        if (mobileViewport.addEventListener) {
+                mobileViewport.addEventListener('change', function() {
+                        handleMobileViewportChange();
+                });
+        } else if (mobileViewport.addListener) {
+                mobileViewport.addListener(function() {
+                        handleMobileViewportChange();
+                });
+        }
+        window.addEventListener('resize', notifyParentHeight);
+        window.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && mobileViewport.matches && document.body.classList.contains('is-sidebar-open')) {
+                        setSidebarOpen(false);
+                }
+        });
+        if ('ResizeObserver' in window) {
+                var resizeObserver = new ResizeObserver(function() {
+                        notifyParentHeight();
+                });
+                resizeObserver.observe(document.body);
+        }
 
         setupForm.addEventListener('submit', function (event) {
                 event.preventDefault();
                 saveFormState(setupForm);
                 var params = new URLSearchParams(createSerializableFormState(setupForm));
-                var query = params.toString();
-                var newUrl = window.location.pathname + (query ? '?' + query : '') + window.location.hash;
-                window.history.replaceState(null, '', newUrl);
-                updateMarker();
+                uploadedMarkerIcon = null;
+                var target = (window.top && window.top.location) ? window.top.location : window.location;
+                var newUrl = target.origin + target.pathname + '?' + params.toString() + target.hash;
+                target.href = newUrl;
+        });
+
+        window.requestAnimationFrame(function() {
+                if (storedSidebarState === null) {
+                        setSidebarOpen(!mobileViewport.matches, false);
+                }
+                notifyParentHeight();
         });
 }
 
